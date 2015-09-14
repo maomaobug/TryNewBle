@@ -6,5 +6,5 @@ import me.zhanghailin.bluetooth.response.BleDataResponse;
  * Created by zhanghailin on 9/10/15.
  */
 public interface BleResponseProcessor {
-    void processConnectionState(BleDataResponse response);
+    void processResponse(BleDataResponse response);
 }
