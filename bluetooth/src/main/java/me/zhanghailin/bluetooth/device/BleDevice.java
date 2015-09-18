@@ -21,9 +21,11 @@ public interface BleDevice {
     void newState(int newState);
 
     // 命令相关
-    void initProtocols();
+    void registerNotificationProtocols();
 
     void clearAndReconnect();
 
     void discoverServices();
+
+    String getAddress();
 }

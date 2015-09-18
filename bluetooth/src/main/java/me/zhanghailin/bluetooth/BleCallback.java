@@ -3,6 +3,7 @@ package me.zhanghailin.bluetooth;
 import android.bluetooth.BluetoothGatt;
 import android.bluetooth.BluetoothGattCallback;
 import android.bluetooth.BluetoothGattCharacteristic;
+import android.util.Log;
 
 import java.util.UUID;
 
@@ -13,6 +14,7 @@ import me.zhanghailin.bluetooth.response.BleDataDelivery;
  * Created by zhanghailin on 9/9/15.
  */
 public class BleCallback extends BluetoothGattCallback {
+    private static final String TAG = "BleCallback";
     private BleDataDelivery dataDeliver;
 
     public BleCallback(BleDataDelivery bleDataDelivery) {
@@ -22,12 +24,16 @@ public class BleCallback extends BluetoothGattCallback {
     @Override
     public void onConnectionStateChange(BluetoothGatt gatt, int status, int newState) {
         String address = gatt.getDevice().getAddress();
+
+        Log.d(TAG, "new state address " + address +" newState:" + newState + " status:" + status);
+
         dataDeliver.onNewConnectionState(address, status, newState);
     }
 
     @Override
     public void onServicesDiscovered(BluetoothGatt gatt, int status) {
         String address = gatt.getDevice().getAddress();
+        Log.d(TAG, "service discovered address " + address);
         dataDeliver.onServiceDiscovered(address);
     }
 
@@ -35,6 +41,7 @@ public class BleCallback extends BluetoothGattCallback {
     public void onCharacteristicRead(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic, int status) {
         String address = gatt.getDevice().getAddress();
         UUID characteristicUuid = characteristic.getUuid();
+        Log.d(TAG, "read uuid " + characteristicUuid.toString() + " address" + address);
         byte[] value = characteristic.getValue();
         dataDeliver.onValueRead(address, characteristicUuid, value);
     }

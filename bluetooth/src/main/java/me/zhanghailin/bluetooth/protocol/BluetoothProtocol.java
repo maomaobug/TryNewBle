@@ -7,6 +7,10 @@ import java.util.UUID;
  * Created by zhanghailin on 9/14/15.
  */
 public interface BluetoothProtocol {
+    /**
+     * Save read/notified value
+     * @param value Value from callback
+     */
     void setValue(byte[] value);
     byte[] getValue();
     UUID getServiceUuid();
@@ -15,4 +19,5 @@ public interface BluetoothProtocol {
     boolean canRead();
     boolean canWrite();
     boolean canReliableWrite();
+    long getLastUpdateTime();
 }

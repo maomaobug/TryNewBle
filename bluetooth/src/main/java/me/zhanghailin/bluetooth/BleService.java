@@ -1,28 +1,26 @@
 package me.zhanghailin.bluetooth;
 
 import android.app.Service;
-import android.bluetooth.BluetoothAdapter;
-import android.bluetooth.BluetoothDevice;
-import android.bluetooth.BluetoothGatt;
 import android.content.Intent;
 import android.os.Binder;
 import android.os.IBinder;
 
-import java.util.HashMap;
-import java.util.Map;
-
+import me.zhanghailin.bluetooth.connection.ConnectionManager;
+import me.zhanghailin.bluetooth.connection.DemoConnectionManager;
+import me.zhanghailin.bluetooth.device.DevicePool;
 import me.zhanghailin.bluetooth.process.BleDataHandler;
 import me.zhanghailin.bluetooth.process.BleResponseProcessor;
 import me.zhanghailin.bluetooth.response.BleDataDelivery;
 import me.zhanghailin.bluetooth.response.HandlerDataDelivery;
 
-public class BleService extends Service {
-    private BluetoothAdapter bluetoothAdapter;
-
+public abstract class BleService extends Service {
     private final IBinder binder = new LocalBinder();
 
-    private final Map<String, StateWrappedGatt> gattPool = new HashMap<>();
+    private ConnectionManager connectionManager;
     private BleCallback bleCallback;
+
+    // FIXME: The DevicePool should be implemented as singleton
+    private DevicePool devicePool;
 
     public BleService() {
     }
@@ -31,23 +29,31 @@ public class BleService extends Service {
     public void onCreate() {
         super.onCreate();
 
-        BleResponseProcessor processor = null; // TODO: 9/10/15  implementation
+        BleResponseProcessor processor = new BleResponseProcessor();
         BleDataDelivery delivery = new HandlerDataDelivery(new BleDataHandler(getMainLooper(), processor));
         bleCallback = new BleCallback(delivery);
+        connectionManager = new DemoConnectionManager(bleCallback, this);
+
+
+        devicePool = createDevicePool(connectionManager);
+        connectionManager.setDevicePool(devicePool);
+
+        processor.setConnectionManager(connectionManager);
+        processor.setDevicePool(devicePool);
     }
 
+    abstract protected DevicePool createDevicePool(ConnectionManager connectionManager);
+
     public void connect(String address) {
-        if (gattPool.containsKey(address)) {
-            StateWrappedGatt existingGatt = gattPool.get(address);
-            existingGatt.gatt.connect();
-            return;
+        try {
+            connectionManager.connect(address);
+        } catch (Exception e) {
+            // TODO: Handle if bluetooth is not on
         }
+    }
 
-        BluetoothDevice device = bluetoothAdapter.getRemoteDevice(address);
-        BluetoothGatt gatt = device.connectGatt(this, true, bleCallback);
-
-        StateWrappedGatt wrappedGatt = new StateWrappedGatt(gatt);
-        gattPool.put(address, wrappedGatt);
+    public DevicePool getDevicePool() {
+        return devicePool;
     }
 
     @Override
@@ -59,5 +65,10 @@ public class BleService extends Service {
         public BleService getService() {
             return BleService.this;
         }
+    }
+
+    @Override
+    public void onTaskRemoved(Intent rootIntent) {
+        connectionManager.clearAll();
     }
 }
