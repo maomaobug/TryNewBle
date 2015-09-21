@@ -14,7 +14,8 @@ import android.view.View;
 import me.zhanghailin.bluetooth.BleService;
 
 public class MainActivity extends AppCompatActivity {
-    private static final String ADDR = "57:A3:05:13:C8:E2";
+//    private static final String ADDR = "57:A3:05:13:C8:E2";
+    private static final String ADDR = "0A:35:CD:01:32:3D";
 
     private BleService bleService;
     private final ServiceConnection serviceConnection = new ServiceConnection() {

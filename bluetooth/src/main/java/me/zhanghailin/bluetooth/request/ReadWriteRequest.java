@@ -14,7 +14,7 @@ import java.lang.annotation.RetentionPolicy;
  * author shenwenjun
  * Date 9/14/15.
  */
-public class ReadWriteRequest extends BleTaskRequest {
+public class ReadWriteRequest extends BleDataRequest {
 
     public static final String READ = "READ";
     public static final String WRITE = "WRITE";
@@ -50,7 +50,7 @@ public class ReadWriteRequest extends BleTaskRequest {
     }
 
     @Override
-    boolean performExecute(BluetoothGatt gatt) {
+    protected boolean performExecute(BluetoothGatt gatt) {
         boolean result;
 
         switch (mMode) {

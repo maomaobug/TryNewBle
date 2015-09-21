@@ -1,6 +1,6 @@
 package me.zhanghailin.bluetooth.task.executor;
 
-import me.zhanghailin.bluetooth.request.BleTaskRequest;
+import me.zhanghailin.bluetooth.request.BleDataRequest;
 
 /**
  * TryNewBle
@@ -11,7 +11,7 @@ import me.zhanghailin.bluetooth.request.BleTaskRequest;
 public class SimpleTaskExecutor implements TaskExecutor {
 
     @Override
-    public boolean executeTask(BleTaskRequest request) {
+    public boolean executeTask(BleDataRequest request) {
         return request.execute();
     }
 

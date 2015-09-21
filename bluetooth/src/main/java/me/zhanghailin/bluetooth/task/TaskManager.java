@@ -2,7 +2,10 @@ package me.zhanghailin.bluetooth.task;
 
 import android.util.Log;
 
-import me.zhanghailin.bluetooth.request.BleTaskRequest;
+import java.util.Iterator;
+
+import me.zhanghailin.bluetooth.request.BleDataRequest;
+import me.zhanghailin.bluetooth.request.filter.RequestFilter;
 import me.zhanghailin.bluetooth.task.executor.SimpleTaskExecutor;
 import me.zhanghailin.bluetooth.task.executor.TaskExecutor;
 import me.zhanghailin.bluetooth.task.policy.DefaultTimeoutPolicy;
@@ -26,14 +29,14 @@ public class TaskManager implements ITaskManager {
 
     private Timeout timeout;
 
-    private BleTaskRequest currentTask;
+    private BleDataRequest currentTask;
 
     private TaskManager() {
         /* use Builder pattern*/
     }
 
     @Override
-    public void submitTask(BleTaskRequest request) {
+    public void submitTask(BleDataRequest request) {
         taskQueue.addTask(request);
 
         nextTask();
@@ -53,6 +56,26 @@ public class TaskManager implements ITaskManager {
         cancelTask(currentTask);
 
         retryTask(currentTask);
+    }
+
+    @Override
+    public void cancelTask(RequestFilter filter) {
+
+        TaskQueue localQueue = taskQueue;
+
+        Iterator<BleDataRequest> iterator = localQueue.iterator();
+        BleDataRequest dataRequest;
+        while (iterator.hasNext()) {
+            dataRequest = iterator.next();
+            if (filter.apply(dataRequest)) {
+                localQueue.removeTask(dataRequest);
+            }
+        }
+    }
+
+    @Override
+    public void cancelAllTask() {
+        taskQueue.removeAllTask();
     }
 
     private void nextTask() {
@@ -77,7 +100,7 @@ public class TaskManager implements ITaskManager {
         performExecute();
     }
 
-    private void cancelTask(BleTaskRequest request) {
+    private void cancelTask(BleDataRequest request) {
         if (request != null && request.isRunning()) {
             request.setRunning(false);
 
@@ -90,7 +113,7 @@ public class TaskManager implements ITaskManager {
         }
     }
 
-    private void retryTask(BleTaskRequest request) {
+    private void retryTask(BleDataRequest request) {
         if (request != null && !request.isRunning()) {
             performExecute();
 

@@ -1,6 +1,8 @@
 package me.zhanghailin.bluetooth.task.queue;
 
-import me.zhanghailin.bluetooth.request.BleTaskRequest;
+import java.util.Iterator;
+
+import me.zhanghailin.bluetooth.request.BleDataRequest;
 
 /**
  * TryNewBle
@@ -10,20 +12,26 @@ import me.zhanghailin.bluetooth.request.BleTaskRequest;
  */
 public interface TaskQueue {
 
-    boolean addTask(BleTaskRequest request);
+    boolean addTask(BleDataRequest request);
 
     /**
      * 获取队头的 task
      */
-    BleTaskRequest peekTask();
+    BleDataRequest peekTask();
 
     /**
      * 获取一个 task ， 并从队列中移除该 task
      */
-    BleTaskRequest pollTask();
+    BleDataRequest pollTask();
 
-    boolean containTask(BleTaskRequest request);
+    boolean containTask(BleDataRequest request);
+
+    boolean removeTask(BleDataRequest request);
+
+    boolean removeAllTask();
 
     boolean isEmpty();
+
+    Iterator<BleDataRequest> iterator();
 
 }

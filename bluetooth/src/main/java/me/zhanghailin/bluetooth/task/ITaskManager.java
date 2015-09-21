@@ -1,6 +1,7 @@
 package me.zhanghailin.bluetooth.task;
 
-import me.zhanghailin.bluetooth.request.BleTaskRequest;
+import me.zhanghailin.bluetooth.request.BleDataRequest;
+import me.zhanghailin.bluetooth.request.filter.RequestFilter;
 
 /**
  * TryNewBle
@@ -10,10 +11,18 @@ import me.zhanghailin.bluetooth.request.BleTaskRequest;
  */
 public interface ITaskManager {
 
-    void submitTask(BleTaskRequest request);
+    void submitTask(BleDataRequest request);
 
     void finishTask();
 
     void retryCurrentTask();
+
+    /**
+     *
+     * @param filter
+     */
+    void cancelTask(RequestFilter filter);
+
+    void cancelAllTask();
 
 }

@@ -1,6 +1,6 @@
 package me.zhanghailin.bluetooth.request.filter;
 
-import me.zhanghailin.bluetooth.request.BleTaskRequest;
+import me.zhanghailin.bluetooth.request.BleDataRequest;
 
 /**
  * TryNewBle
@@ -11,7 +11,8 @@ import me.zhanghailin.bluetooth.request.BleTaskRequest;
 public class SimpleFilter implements RequestFilter {
 
     @Override
-    public boolean through(BleTaskRequest request) {
+    public boolean apply(BleDataRequest request) {
+        // TODO: 9/21/15
         return false;
     }
 

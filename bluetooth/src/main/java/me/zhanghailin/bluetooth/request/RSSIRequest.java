@@ -8,14 +8,14 @@ import android.bluetooth.BluetoothGatt;
  * author shenwenjun
  * Date 9/14/15.
  */
-public class RSSIRequest extends BleTaskRequest {
+public class RSSIRequest extends BleDataRequest {
 
     public RSSIRequest(BluetoothGatt gatt) {
         super(gatt);
     }
 
     @Override
-    boolean performExecute(BluetoothGatt gatt) {
+    protected boolean performExecute(BluetoothGatt gatt) {
         return gatt.readRemoteRssi();
     }
 }
