@@ -15,7 +15,7 @@ public class RSSIRequest extends BleTaskRequest {
     }
 
     @Override
-    public boolean performExecute(BluetoothGatt gatt) {
+    boolean performExecute(BluetoothGatt gatt) {
         return gatt.readRemoteRssi();
     }
 }

@@ -50,7 +50,7 @@ public class ReadWriteRequest extends BleTaskRequest {
     }
 
     @Override
-    public boolean performExecute(BluetoothGatt gatt) {
+    boolean performExecute(BluetoothGatt gatt) {
         boolean result;
 
         switch (mMode) {

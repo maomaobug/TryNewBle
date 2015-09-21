@@ -32,7 +32,7 @@ public abstract class BleTaskRequest {
      * 执行成功 或 失败
      *
      * @return 成功 或 失败
-     */
+    */
     public boolean execute() {
         if (gatt == null) {
             Log.w(TAG, "gatt == null");
@@ -47,6 +47,6 @@ public abstract class BleTaskRequest {
      * @param gatt 实际操作蓝牙设备的句柄
      * @return 操作成功 / 失败
      */
-    public abstract boolean performExecute(BluetoothGatt gatt);
+    abstract boolean performExecute(BluetoothGatt gatt);
 
 }

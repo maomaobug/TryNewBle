@@ -23,7 +23,13 @@ public class Timeout {
     private TimeoutPolicy timeoutPolicy;
 
     public Timeout() {
-        handler = new Handler(Looper.getMainLooper());
+
+        // 优先使用当前线程环境, 如果如果当前线程没有初始化过 Looper ， 则使用主线程处理超时回调函数
+        Looper looper = Looper.myLooper();
+        if (looper == null) {
+            looper = Looper.getMainLooper();
+        }
+        handler = new Handler(looper);
     }
 
     public void setTimeoutPolicy(TimeoutPolicy timeoutPolicy) {
