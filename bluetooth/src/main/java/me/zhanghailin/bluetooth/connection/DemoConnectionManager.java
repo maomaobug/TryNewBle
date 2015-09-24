@@ -56,6 +56,7 @@ public class DemoConnectionManager implements ConnectionManager {
     @Override
     public void disconnect(String address) {
         BleDevice bleDevice = devicePool.get(address);
+        bleDevice.getGatt().disconnect();
         bleDevice.getGatt().close();
     }
 

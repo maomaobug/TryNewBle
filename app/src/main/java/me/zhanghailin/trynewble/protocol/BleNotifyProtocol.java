@@ -10,8 +10,12 @@ import me.zhanghailin.bluetooth.protocol.BluetoothProtocol;
  */
 public interface BleNotifyProtocol extends BluetoothProtocol {
 
-    void onValueNotify(byte[] value);
+    interface OnBleNotifyListener {
+        void onBleNotify(Object value);
+    }
 
-    void onValueRead(byte[] value);
+    void setOnBleNotifyListener(OnBleNotifyListener onBleNotifyListener);
+
+    void onValueNotify(byte[] value);
 
 }
