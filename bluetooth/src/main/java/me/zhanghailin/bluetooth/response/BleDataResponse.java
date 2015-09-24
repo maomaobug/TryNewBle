@@ -12,17 +12,19 @@ public class BleDataResponse {
     public final int status;
     public final int newState;
     public final UUID characteristicUuid;
+    public final UUID descriptorUuid;
     public final byte[] value;
     public final int rssi;
 
     private BleDataResponse(
             Type type, String address, int status, int newState, UUID characteristicUuid,
-            byte[] value, int rssi) {
+            UUID descriptorUuid, byte[] value, int rssi) {
         this.type = type;
         this.address = address;
         this.status = status;
         this.newState = newState;
         this.characteristicUuid = characteristicUuid;
+        this.descriptorUuid = descriptorUuid;
         this.value = value;
         this.rssi = rssi;
     }
@@ -33,6 +35,7 @@ public class BleDataResponse {
         VALUE_READ,
         VALUE_WRITE,
         VALUE_NOTIFIED,
+        DESCRIPTOR_WRITE,
         RSSI,
         ;
     }
@@ -74,6 +77,15 @@ public class BleDataResponse {
                 .build(Type.VALUE_NOTIFIED);
     }
 
+    public static BleDataResponse buildDescriptorWrite(String address, UUID characteristicUuid,
+                                                       UUID descriptorUuid) {
+        return new Builder()
+                .setAddress(address)
+                .setCharacteristicUuid(characteristicUuid)
+                .setDescriptorUuid(descriptorUuid)
+                .build(Type.DESCRIPTOR_WRITE);
+    }
+
     public static BleDataResponse buildRssi(String address, int rssi) {
         return new Builder()
                 .setAddress(address)
@@ -86,13 +98,14 @@ public class BleDataResponse {
         private int buildingStatus = Integer.MIN_VALUE;
         private int buildingNewState = Integer.MIN_VALUE;
         private UUID buildingCharacteristicUuid = null;
+        private UUID buildingDescriptorUuid = null;
         private byte[] buildingValue = null;
         private int buildingRssi = Integer.MIN_VALUE;
 
         public BleDataResponse build(Type type) {
             return new BleDataResponse(type,
-                    buildingAddress, buildingStatus,
-                    buildingNewState, buildingCharacteristicUuid, buildingValue, buildingRssi);
+                    buildingAddress, buildingStatus,buildingNewState, buildingCharacteristicUuid,
+                    buildingDescriptorUuid, buildingValue, buildingRssi);
         }
 
         public Builder setAddress(String address) {
@@ -112,6 +125,11 @@ public class BleDataResponse {
 
         public Builder setCharacteristicUuid(UUID characteristicUuid) {
             buildingCharacteristicUuid = characteristicUuid;
+            return this;
+        }
+
+        public Builder setDescriptorUuid(UUID descriptorUuid) {
+            buildingDescriptorUuid = descriptorUuid;
             return this;
         }
 

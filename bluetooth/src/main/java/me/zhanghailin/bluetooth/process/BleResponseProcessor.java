@@ -50,15 +50,25 @@ public class BleResponseProcessor {
                 onServiceDiscovered(response.address);
                 break;
             case VALUE_READ:
+                connectionManager.nextOperation();
+
                 onNewValue(response.address, response.characteristicUuid, response.value);
                 break;
             case VALUE_WRITE:
+                connectionManager.nextOperation();
+
                 onValueWrite(response.address, response.characteristicUuid);
                 break;
             case VALUE_NOTIFIED:
-                onNewValue(response.address, response.characteristicUuid, response.value);
+                onValueNotify(response.address, response.characteristicUuid, response.value);
                 break;
+            case DESCRIPTOR_WRITE:
+                connectionManager.nextOperation();
+
+                onDescriptorWrite(response.address, response.characteristicUuid, response.descriptorUuid);
             case RSSI:
+                connectionManager.nextOperation();
+
                 onRssi(response.address, response.rssi);
                 break;
             default:
@@ -89,26 +99,40 @@ public class BleResponseProcessor {
         device.registerNotificationProtocols();
     }
 
+    private void onValueNotify(String address, UUID characteristicUuid, byte[] value) {
+        Timber.i("value notify address[%s], char[%s], value[%s]",
+                address, characteristicUuid, HexUtil.bytesToHex(value));
+
+        // TODO: 9/23/15  区分 notify value 和 read value
+        BleDevice device = devicePool.get(address);
+        BluetoothProtocol protocol = device.getProtocol(characteristicUuid);
+        protocol.setValue(value);
+    }
+
     private void onNewValue(String address, UUID characteristicUuid, byte[] value) {
         Timber.i("new value address[%s], char[%s], value[%s]",
                 address, characteristicUuid, HexUtil.bytesToHex(value));
         BleDevice device = devicePool.get(address);
         BluetoothProtocol protocol = device.getProtocol(characteristicUuid);
         protocol.setValue(value);
-
-        connectionManager.nextOperation();
     }
 
     private void onValueWrite(String address, UUID characteristicUuid) {
         Timber.i("write address[%s] char[%s]", address, characteristicUuid);
-        connectionManager.nextOperation();
+    }
+
+    /**
+     * 暂时我们应用到的descriptor只有开启通知，不需要额外处理。
+     *
+     */
+    private void onDescriptorWrite(String address, UUID characteristicUuid, UUID descriptorUuid) {
+        BleDevice device = devicePool.get(address);
+        device.onDescriptorWrite(characteristicUuid, descriptorUuid);
     }
 
     private void onRssi(String address, int rssi) {
         BleDevice device = devicePool.get(address);
         device.setRssi(rssi);
-
-        connectionManager.nextOperation();
     }
 
 }

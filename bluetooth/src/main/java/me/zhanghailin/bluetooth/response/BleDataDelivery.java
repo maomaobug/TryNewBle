@@ -19,4 +19,6 @@ public interface BleDataDelivery {
     void onValueNotified(String address, UUID characteristicUuid, byte[] value);
 
     void onRssi(String address, int rssi);
+
+    void onDescriptorWrite(String address, UUID characteristicUuid, UUID descriptorUuid);
 }

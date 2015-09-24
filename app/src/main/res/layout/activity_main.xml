@@ -2,20 +2,28 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
     android:gravity="center"
+    android:orientation="vertical"
     android:paddingBottom="@dimen/activity_vertical_margin"
     android:paddingLeft="@dimen/activity_horizontal_margin"
     android:paddingRight="@dimen/activity_horizontal_margin"
     android:paddingTop="@dimen/activity_vertical_margin"
     tools:context=".MainActivity">
 
+    <TextView
+        android:id="@+id/text"
+        android:layout_width="match_parent"
+        android:layout_height="60dp"
+        android:text="100"
+        android:gravity="center"
+        android:textColor="@android:color/black" />
+
     <Button
         android:id="@+id/btn_connect"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:onClick="connect"
-        android:text="Connect"/>
+        android:text="Connect" />
 
     <Button
         android:id="@+id/btn_beep"
@@ -23,7 +31,21 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="20dp"
         android:onClick="beep"
-        android:text="Beep"/>
+        android:text="Beep" />
+
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="20dp"
+        android:onClick="onBatteryClick"
+        android:text="battery" />
+
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="20dp"
+        android:onClick="bindBleClick"
+        android:text="bindBleClick" />
 
     <Button
         android:id="@+id/btn_disconnect"
@@ -31,6 +53,6 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="20dp"
         android:onClick="disconnect"
-        android:text="Disconnect"/>
+        android:text="Disconnect" />
 
 </LinearLayout>

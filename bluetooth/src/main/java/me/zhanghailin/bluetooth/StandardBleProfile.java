@@ -1,4 +1,4 @@
-package me.zhanghailin.trynewble.protocol;
+package me.zhanghailin.bluetooth;
 
 /**
  * Created by zhanghailin on 7/29/15.
@@ -64,4 +64,15 @@ public interface StandardBleProfile {
      */
     String SERVICE_CURRENT_TIME = "00001805-0000-1000-8000-00805f9b34fb";
     // TODO: 7/30/15
+
+    /**
+     * 1803 Link Loss
+     * @see <a href="https://developer.bluetooth.org/gatt/services/Pages/ServiceViewer.aspx?u=org.bluetooth.service.link_loss.xml">spec page</a>
+     */
+    String SERVICE_LINK_LOSS = "00001803-0000-1000-8000-00805f9b34fb";
+    // Write Characteristic Value
+    // 0x00 No Alert
+    // 0x01 Mild Alert
+    // 0x02 High Alert
+    String CHAR_ALERT_LEVEL_LINK_LOSS = "00002a06-0000-1000-8000-00805f9b34fb";
 }

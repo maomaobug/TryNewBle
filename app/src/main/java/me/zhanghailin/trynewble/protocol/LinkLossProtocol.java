@@ -6,10 +6,13 @@ import me.zhanghailin.bluetooth.StandardBleProfile;
 import me.zhanghailin.bluetooth.protocol.BluetoothProtocol;
 
 /**
- * Created by zhanghailin on 9/18/15.
+ * TryNewBle
+ * package me.zhanghailin.trynewble.protocol
+ * author shenwenjun
+ * Date 9/23/15.
  */
-public class ImmediateAlertProtocol implements BluetoothProtocol{
-    public static final byte[] MIDDLE_LEVEL_ALERT = new byte[]{0x02};
+public class LinkLossProtocol implements BluetoothProtocol {
+
 
     @Override
     public void setValue(byte[] value) {
@@ -23,12 +26,12 @@ public class ImmediateAlertProtocol implements BluetoothProtocol{
 
     @Override
     public UUID getServiceUuid() {
-        return UUID.fromString(StandardBleProfile.SERVICE_IMMEDIATE_ALERT);
+        return UUID.fromString(StandardBleProfile.SERVICE_LINK_LOSS);
     }
 
     @Override
     public UUID getCharacteristicUuid() {
-        return UUID.fromString(StandardBleProfile.CHAR_ALERT_LEVEL);
+        return UUID.fromString(StandardBleProfile.CHAR_ALERT_LEVEL_LINK_LOSS);
     }
 
     @Override
@@ -43,7 +46,7 @@ public class ImmediateAlertProtocol implements BluetoothProtocol{
 
     @Override
     public boolean canWrite() {
-        return true;
+        return false;
     }
 
     @Override

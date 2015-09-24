@@ -8,11 +8,13 @@ import java.util.Map;
 
 import me.zhanghailin.bluetooth.connection.ConnectionManager;
 import me.zhanghailin.bluetooth.device.DevicePool;
+import timber.log.Timber;
 
 /**
  * Created by zhanghailin on 9/17/15.
  */
 public class IHereDevicePool extends DevicePool<IHereDevice> {
+
     private final Map<String, IHereDevice> deviceMap = new HashMap<>();
 
     public IHereDevicePool(ConnectionManager connectionManager) {
@@ -30,10 +32,11 @@ public class IHereDevicePool extends DevicePool<IHereDevice> {
 
         String address = gatt.getDevice().getAddress();
         if (deviceMap.containsKey(address)) {
+            Timber.i("duplicate not building");
             return;
         }
 
-        IHereDevice device = new IHereDevice(gatt, connectionManager);
+        IHereDevice device = new IHereDevice(gatt, connectionManager, address);
         deviceMap.put(address, device);
 
         Log.d("IHereDevicePool", "device map size: " + deviceMap.size());

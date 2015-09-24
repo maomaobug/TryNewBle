@@ -23,6 +23,8 @@ public interface BleDevice {
     // 命令相关
     void registerNotificationProtocols();
 
+    void onDescriptorWrite(UUID characteristicUuid, UUID descriptorUuid);
+
     void clearAndReconnect();
 
     void discoverServices();
