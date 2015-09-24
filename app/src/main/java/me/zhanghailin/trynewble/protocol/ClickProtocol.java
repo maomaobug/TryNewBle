@@ -2,18 +2,43 @@ package me.zhanghailin.trynewble.protocol;
 
 import java.util.UUID;
 
-import me.zhanghailin.bluetooth.protocol.BluetoothProtocol;
-
 /**
  * Created by zhanghailin on 9/18/15.
  */
-public class ClickProtocol implements BluetoothProtocol{
+public class ClickProtocol implements BleNotifyProtocol {
+
     private final UUID serviceUuid = UUID.fromString(IHereProfile.SERVICE_CLICK);
     private final UUID characteristicUuid = UUID.fromString(IHereProfile.CHARACTERISTIC_CLICK);
 
+    public interface OnBleClickListener {
+        void onBleClick();
+    }
+
+    private OnBleClickListener onBleClickListener;
+
+    public void setOnBleClickListener(OnBleClickListener onBleClickListener) {
+        this.onBleClickListener = onBleClickListener;
+    }
+
+    @Override
+    public void onValueNotify(byte[] value) {
+        if (onBleClickListener != null) {
+            onBleClickListener.onBleClick();
+        }
+    }
+
+    @Override
+    public void onValueRead(byte[] value) {
+
+    }
+
     @Override
     public void setValue(byte[] value) {
-        /* no-op */
+//        if (canNotify()) {
+        onValueNotify(value);
+//        } else if (canRead()) {
+//            onValueRead(value);
+//        }
     }
 
     @Override

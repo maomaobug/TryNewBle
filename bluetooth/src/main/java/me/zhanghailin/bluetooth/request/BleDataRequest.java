@@ -16,6 +16,8 @@ public abstract class BleDataRequest {
 
     private volatile boolean running;
 
+    private String tag;
+
     public BleDataRequest(BluetoothGatt gatt) {
         this.gatt = gatt;
     }
@@ -26,6 +28,18 @@ public abstract class BleDataRequest {
 
     public boolean isRunning() {
         return running;
+    }
+
+    /**
+     * 用于 RequestFilter 判断是否需要取消这个 request
+     * @return tag 内容 eg: BleDevice address
+     */
+    public String getTag() {
+        return tag;
+    }
+
+    public void setTag(String tag) {
+        this.tag = tag;
     }
 
     /**

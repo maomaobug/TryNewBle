@@ -56,7 +56,7 @@ public class BleResponseProcessor {
                 onValueWrite(response.address, response.characteristicUuid);
                 break;
             case VALUE_NOTIFIED:
-                onNewValue(response.address, response.characteristicUuid, response.value);
+                onValueNotify(response.address, response.characteristicUuid, response.value);
                 break;
             case RSSI:
                 onRssi(response.address, response.rssi);
@@ -87,6 +87,16 @@ public class BleResponseProcessor {
     private void onServiceDiscovered(String address) {
         BleDevice device = devicePool.get(address);
         device.registerNotificationProtocols();
+    }
+
+    private void onValueNotify(String address, UUID characteristicUuid, byte[] value) {
+        Timber.i("value notify address[%s], char[%s], value[%s]",
+                address, characteristicUuid, HexUtil.bytesToHex(value));
+
+        // TODO: 9/23/15  区分 notify value 和 read value
+        BleDevice device = devicePool.get(address);
+        BluetoothProtocol protocol = device.getProtocol(characteristicUuid);
+        protocol.setValue(value);
     }
 
     private void onNewValue(String address, UUID characteristicUuid, byte[] value) {

@@ -64,7 +64,8 @@ public class DemoConnectionManager implements ConnectionManager {
 
     @Override
     public void enQueueConnect(String address) {
-
+        //xxx 为什么提供 入队连接 的接口， 与上面的 connect 有什么区别
+        //xxx 另外当时讨论的结果是 连接 和 断连 不入队的吧？
     }
 
     @Override

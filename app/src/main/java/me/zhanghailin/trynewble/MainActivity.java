@@ -3,30 +3,37 @@ package me.zhanghailin.trynewble;
 import android.content.ComponentName;
 import android.content.Intent;
 import android.content.ServiceConnection;
+import android.os.Bundle;
 import android.os.IBinder;
 import android.support.v7.app.AppCompatActivity;
-import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.TextView;
 
 import me.zhanghailin.bluetooth.BleService;
+import me.zhanghailin.trynewble.protocol.BatteryProtocol;
+import me.zhanghailin.trynewble.protocol.ClickProtocol;
 
 public class MainActivity extends AppCompatActivity {
-//    private static final String ADDR = "57:A3:05:13:C8:E2";
+    //    private static final String ADDR = "57:A3:05:13:C8:E2";
     private static final String ADDR = "0A:35:CD:01:32:3D";
+
+    private TextView textView;
 
     private BleService bleService;
     private final ServiceConnection serviceConnection = new ServiceConnection() {
         @Override
         public void onServiceConnected(ComponentName name, IBinder service) {
             bleService = ((BleService.LocalBinder) service).getService();
+            textView.setText("service connected!");
         }
 
         @Override
         public void onServiceDisconnected(ComponentName name) {
             bleService = null;
+            textView.setText("service disconnected~~~~~");
         }
     };
 
@@ -34,6 +41,8 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        textView = (TextView) findViewById(R.id.text);
     }
 
     @Override
@@ -49,6 +58,7 @@ public class MainActivity extends AppCompatActivity {
         super.onStop();
 
         unbindService(serviceConnection);
+        textView.setText("disconnected~~~~~");
     }
 
     @Override
@@ -77,6 +87,7 @@ public class MainActivity extends AppCompatActivity {
         Log.d("main", "connect clicked");
         if (bleService != null) {
             bleService.connect(ADDR);
+            textView.setText("device connected");
         }
     }
 
@@ -86,6 +97,28 @@ public class MainActivity extends AppCompatActivity {
         IHereDevicePool devicePool = (IHereDevicePool) bleService.getDevicePool();
         IHereDevice device = devicePool.get(ADDR);
         device.middleAlert();
+    }
+
+    public void bindBleClick(View v) {
+        IHereDevicePool devicePool = (IHereDevicePool) bleService.getDevicePool();
+        IHereDevice device = devicePool.get(ADDR);
+        device.setOnBleClickListener(new ClickProtocol.OnBleClickListener() {
+            @Override
+            public void onBleClick() {
+                textView.setText("Ble Device Clicked");
+            }
+        });
+    }
+
+    public void onBatteryClick(View v) {
+        IHereDevicePool devicePool = (IHereDevicePool) bleService.getDevicePool();
+        IHereDevice device = devicePool.get(ADDR);
+        device.battery(new BatteryProtocol.OnReadBatteryCompleteListener() {
+            @Override
+            public void onReadComplete(int batteryLevel) {
+                textView.setText("电池电量：" + batteryLevel);
+            }
+        });
     }
 
     public void disconnect(View view) {

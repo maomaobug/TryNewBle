@@ -13,6 +13,7 @@ import me.zhanghailin.bluetooth.device.DevicePool;
  * Created by zhanghailin on 9/17/15.
  */
 public class IHereDevicePool extends DevicePool<IHereDevice> {
+
     private final Map<String, IHereDevice> deviceMap = new HashMap<>();
 
     public IHereDevicePool(ConnectionManager connectionManager) {
@@ -33,7 +34,7 @@ public class IHereDevicePool extends DevicePool<IHereDevice> {
             return;
         }
 
-        IHereDevice device = new IHereDevice(gatt, connectionManager);
+        IHereDevice device = new IHereDevice(gatt, connectionManager, address);
         deviceMap.put(address, device);
 
         Log.d("IHereDevicePool", "device map size: " + deviceMap.size());
