@@ -68,6 +68,14 @@ public abstract class BleService extends Service {
         }
     }
 
+    public void disconnect(String address) {
+        try {
+            connectionManager.disconnect(address);
+        } catch (Exception e) {
+            // TODO: Handle if bluetooth is not on
+        }
+    }
+
     public DevicePool getDevicePool() {
         return devicePool;
     }

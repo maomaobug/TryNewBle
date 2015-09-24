@@ -7,6 +7,7 @@ import android.bluetooth.BluetoothGattCallback;
 import android.bluetooth.BluetoothManager;
 import android.content.Context;
 
+import me.zhanghailin.bluetooth.device.BleDevice;
 import me.zhanghailin.bluetooth.device.DevicePool;
 import me.zhanghailin.bluetooth.request.BleDataRequest;
 import me.zhanghailin.bluetooth.task.ITaskManager;
@@ -50,6 +51,12 @@ public class DemoConnectionManager implements ConnectionManager {
         BluetoothDevice device = bluetoothAdapter.getRemoteDevice(address);
         BluetoothGatt gatt = device.connectGatt(applicationContext, true, callback);
         devicePool.buildNewDevice(gatt);
+    }
+
+    @Override
+    public void disconnect(String address) {
+        BleDevice bleDevice = devicePool.get(address);
+        bleDevice.getGatt().close();
     }
 
     @Override

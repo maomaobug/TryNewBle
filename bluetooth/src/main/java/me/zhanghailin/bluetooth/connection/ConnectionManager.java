@@ -10,6 +10,7 @@ public interface ConnectionManager {
     void nextOperation();
     void enQueueRequest(BleDataRequest request);
     void connect(String address);
+    void disconnect(String address);
     void clearAll();
     void enQueueDisconnect(String address);
     void enQueueConnect(String address);
