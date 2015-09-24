@@ -2,6 +2,7 @@ package me.zhanghailin.trynewble.protocol;
 
 import java.util.UUID;
 
+import me.zhanghailin.bluetooth.StandardBleProfile;
 import me.zhanghailin.bluetooth.protocol.BluetoothProtocol;
 
 /**
