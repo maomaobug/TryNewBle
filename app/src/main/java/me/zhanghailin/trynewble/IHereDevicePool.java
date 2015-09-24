@@ -3,9 +3,6 @@ package me.zhanghailin.trynewble;
 import android.bluetooth.BluetoothGatt;
 import android.util.Log;
 
-import java.util.HashMap;
-import java.util.Map;
-
 import me.zhanghailin.bluetooth.connection.ConnectionManager;
 import me.zhanghailin.bluetooth.device.DevicePool;
 import timber.log.Timber;
@@ -14,8 +11,6 @@ import timber.log.Timber;
  * Created by zhanghailin on 9/17/15.
  */
 public class IHereDevicePool extends DevicePool<IHereDevice> {
-
-    private final Map<String, IHereDevice> deviceMap = new HashMap<>();
 
     public IHereDevicePool(ConnectionManager connectionManager) {
         super(connectionManager);
@@ -41,4 +36,5 @@ public class IHereDevicePool extends DevicePool<IHereDevice> {
 
         Log.d("IHereDevicePool", "device map size: " + deviceMap.size());
     }
+
 }

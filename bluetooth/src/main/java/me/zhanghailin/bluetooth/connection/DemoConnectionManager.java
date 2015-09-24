@@ -55,6 +55,8 @@ public class DemoConnectionManager implements ConnectionManager {
     @Override
     public void clearAll() {
         taskManager.cancelAllTask();
+
+        devicePool.closeAll();
     }
 
     @Override
