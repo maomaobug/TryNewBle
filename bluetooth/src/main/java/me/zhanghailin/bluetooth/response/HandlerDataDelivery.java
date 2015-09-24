@@ -56,6 +56,13 @@ public class HandlerDataDelivery implements BleDataDelivery {
     }
 
     @Override
+    public void onDescriptorWrite(String address, UUID characteristicUuid, UUID descriptorUuid) {
+        BleDataResponse response =
+                BleDataResponse.buildDescriptorWrite(address, characteristicUuid, descriptorUuid);
+        deliverResponse(response);
+    }
+
+    @Override
     public void onRssi(String address, int rssi) {
         BleDataResponse response = BleDataResponse.buildRssi(address, rssi);
         deliverResponse(response);

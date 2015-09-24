@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
+import me.zhanghailin.bluetooth.StandardBleProfile;
 import me.zhanghailin.bluetooth.connection.ConnectionManager;
 import me.zhanghailin.bluetooth.device.BleDevice;
 import me.zhanghailin.bluetooth.protocol.BluetoothProtocol;
@@ -18,7 +19,6 @@ import me.zhanghailin.trynewble.protocol.BatteryProtocol;
 import me.zhanghailin.trynewble.protocol.ClickProtocol;
 import me.zhanghailin.trynewble.protocol.ImmediateAlertProtocol;
 import me.zhanghailin.trynewble.protocol.LinkLossProtocol;
-import me.zhanghailin.trynewble.protocol.StandardBleProfile;
 import timber.log.Timber;
 
 /**
@@ -81,7 +81,7 @@ public class IHereDevice implements BleDevice {
 
     @Override
     public void registerNotificationProtocols() {
-        UUID notificationUuid =
+        final UUID notificationUuid =
                 UUID.fromString(StandardBleProfile.DESCRIPTOR_CLIENT_CHARACTERISTIC_CONFIGURATION);
 
         for (BluetoothGattService service : gatt.getServices()) {
@@ -90,31 +90,50 @@ public class IHereDevice implements BleDevice {
             }
         }
 
-        for (BluetoothProtocol protocol : protocols) {
+        for (final BluetoothProtocol protocol : protocols) {
             if (protocol.canNotify()) {
-                BluetoothGattService service = gatt.getService(protocol.getServiceUuid());
-                if (service == null) {
-                    throw new RuntimeException(
-                            "No service found for: " + protocol.getCharacteristicUuid());
-                }
 
-                BluetoothGattCharacteristic characteristic =
-                        service.getCharacteristic(protocol.getCharacteristicUuid());
-                if (characteristic == null) {
-                    throw new RuntimeException(
-                            "No characteristic found for: " + protocol.getCharacteristicUuid());
-                }
+                connectionManager.enQueueRequest(new BleDataRequest(gatt) {
+                    @Override
+                    protected boolean performExecute(BluetoothGatt gatt) {
+                        BluetoothGattService service = gatt.getService(protocol.getServiceUuid());
+                        if (service == null) {
+                            throw new RuntimeException(
+                                    "No service found for: " + protocol.getCharacteristicUuid());
+                        }
 
-                BluetoothGattDescriptor descriptor =
-                        characteristic.getDescriptor(notificationUuid);
-                descriptor.setValue(BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE);
-                boolean writeSuccess = gatt.writeDescriptor(descriptor);
+                        BluetoothGattCharacteristic characteristic =
+                                service.getCharacteristic(protocol.getCharacteristicUuid());
+                        if (characteristic == null) {
+                            throw new RuntimeException(
+                                    "No characteristic found for: " + protocol.getCharacteristicUuid());
+                        }
 
-                boolean setSuccess = gatt.setCharacteristicNotification(characteristic, true);
+                        BluetoothGattDescriptor descriptor =
+                                characteristic.getDescriptor(notificationUuid);
+                        descriptor.setValue(BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE);
+                        boolean writeSuccess = gatt.writeDescriptor(descriptor);
 
-                Timber.i("Notification enabled[%s] for characteristic[%s]",
-                        writeSuccess && setSuccess, protocol.getCharacteristicUuid());
+                        Timber.i("Descriptor write [%s] for characteristic[%s]",
+                                writeSuccess , protocol.getCharacteristicUuid());
+
+                        return writeSuccess;
+                    }
+                });
+
             }
+        }
+    }
+
+    @Override
+    public void onDescriptorWrite(UUID characteristicUuid, UUID descriptorUuid) {
+        if (descriptorUuid.toString().equalsIgnoreCase(StandardBleProfile.DESCRIPTOR_CLIENT_CHARACTERISTIC_CONFIGURATION)) {
+            BluetoothProtocol protocol = getProtocol(characteristicUuid);
+            BluetoothGattService service = gatt.getService(protocol.getServiceUuid());
+            BluetoothGattCharacteristic characteristic = service.getCharacteristic(characteristicUuid);
+            boolean setNotifySuccess = gatt.setCharacteristicNotification(characteristic, true);
+
+            Timber.i("setNotification [%s] [%s]", characteristicUuid, setNotifySuccess);
         }
     }
 
@@ -138,7 +157,7 @@ public class IHereDevice implements BleDevice {
         BluetoothGattService service = gatt.getService(immediateAlertProtocol.getServiceUuid());
         BluetoothGattCharacteristic characteristic =
                 service.getCharacteristic(immediateAlertProtocol.getCharacteristicUuid());
-        characteristic.setValue(ImmediateAlertProtocol.middleLevelAlert);
+        characteristic.setValue(ImmediateAlertProtocol.MIDDLE_LEVEL_ALERT);
 
         BleDataRequest request = new ReadWriteRequest(gatt, characteristic, ReadWriteRequest.WRITE);
         connectionManager.enQueueRequest(request);

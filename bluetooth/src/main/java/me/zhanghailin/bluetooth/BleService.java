@@ -21,7 +21,6 @@ public abstract class BleService extends Service {
     private ConnectionManager connectionManager;
     private BleCallback bleCallback;
 
-    // FIXME: The DevicePool should be implemented as singleton
     private DevicePool devicePool;
 
     public BleService() {

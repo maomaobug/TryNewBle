@@ -2,13 +2,14 @@ package me.zhanghailin.trynewble.protocol;
 
 import java.util.UUID;
 
+import me.zhanghailin.bluetooth.StandardBleProfile;
 import me.zhanghailin.bluetooth.protocol.BluetoothProtocol;
 
 /**
  * Created by zhanghailin on 9/18/15.
  */
 public class ImmediateAlertProtocol implements BluetoothProtocol{
-    public static final byte[] middleLevelAlert = new byte[]{0x02};
+    public static final byte[] MIDDLE_LEVEL_ALERT = new byte[]{0x02};
 
     @Override
     public void setValue(byte[] value) {

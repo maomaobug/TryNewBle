@@ -3,6 +3,7 @@ package me.zhanghailin.bluetooth;
 import android.bluetooth.BluetoothGatt;
 import android.bluetooth.BluetoothGattCallback;
 import android.bluetooth.BluetoothGattCharacteristic;
+import android.bluetooth.BluetoothGattDescriptor;
 import android.util.Log;
 
 import java.util.UUID;
@@ -59,6 +60,14 @@ public class BleCallback extends BluetoothGattCallback {
         UUID characteristicUuid = characteristic.getUuid();
         byte[] value = characteristic.getValue();
         dataDeliver.onValueNotified(address, characteristicUuid, value);
+    }
+
+    @Override
+    public void onDescriptorWrite(BluetoothGatt gatt, BluetoothGattDescriptor descriptor, int status) {
+        String address = gatt.getDevice().getAddress();
+        UUID characteristicUuid = descriptor.getCharacteristic().getUuid();
+        UUID descriptorUuid = descriptor.getUuid();
+        dataDeliver.onDescriptorWrite(address, characteristicUuid, descriptorUuid);
     }
 
     @Override

@@ -1,4 +1,4 @@
-package me.zhanghailin.trynewble.protocol;
+package me.zhanghailin.bluetooth;
 
 /**
  * Created by zhanghailin on 7/29/15.
