@@ -1,6 +1,7 @@
 package me.zhanghailin.trynewble;
 
 import android.app.Application;
+import android.content.Intent;
 
 import timber.log.Timber;
 
@@ -13,5 +14,10 @@ public class DemoApplication extends Application {
         super.onCreate();
 
         Timber.plant(new Timber.DebugTree());
+
+
+        Intent serviceIntent = new Intent(this, ApplicationBleService.class);
+        startService(serviceIntent);
+
     }
 }

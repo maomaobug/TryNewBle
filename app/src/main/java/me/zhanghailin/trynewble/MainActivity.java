@@ -13,12 +13,11 @@ import android.view.View;
 import android.widget.TextView;
 
 import me.zhanghailin.bluetooth.BleService;
+import me.zhanghailin.bluetooth.DemoConstants;
 import me.zhanghailin.trynewble.protocol.BatteryProtocol;
 import me.zhanghailin.trynewble.protocol.ClickProtocol;
 
 public class MainActivity extends AppCompatActivity {
-    //    private static final String ADDR = "57:A3:05:13:C8:E2";
-    private static final String ADDR = "0A:35:CD:01:32:3D";
 
     private TextView textView;
 
@@ -86,7 +85,7 @@ public class MainActivity extends AppCompatActivity {
     public void connect(View view) {
         Log.d("main", "connect clicked");
         if (bleService != null) {
-            bleService.connect(ADDR);
+            bleService.connect(DemoConstants.ADDR);
             textView.setText("device connected");
         }
     }
@@ -95,13 +94,13 @@ public class MainActivity extends AppCompatActivity {
         Log.d("main", "beep clicked");
 
         IHereDevicePool devicePool = (IHereDevicePool) bleService.getDevicePool();
-        IHereDevice device = devicePool.get(ADDR);
+        IHereDevice device = devicePool.get(DemoConstants.ADDR);
         device.middleAlert();
     }
 
     public void bindBleClick(View v) {
         IHereDevicePool devicePool = (IHereDevicePool) bleService.getDevicePool();
-        IHereDevice device = devicePool.get(ADDR);
+        IHereDevice device = devicePool.get(DemoConstants.ADDR);
         device.setOnBleClickListener(new ClickProtocol.OnBleClickListener() {
             @Override
             public void onBleClick() {
@@ -112,7 +111,7 @@ public class MainActivity extends AppCompatActivity {
 
     public void onBatteryClick(View v) {
         IHereDevicePool devicePool = (IHereDevicePool) bleService.getDevicePool();
-        IHereDevice device = devicePool.get(ADDR);
+        IHereDevice device = devicePool.get(DemoConstants.ADDR);
         device.battery(new BatteryProtocol.OnReadBatteryCompleteListener() {
             @Override
             public void onReadComplete(int batteryLevel) {

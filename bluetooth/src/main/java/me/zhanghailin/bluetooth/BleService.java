@@ -14,6 +14,7 @@ import me.zhanghailin.bluetooth.response.BleDataDelivery;
 import me.zhanghailin.bluetooth.response.HandlerDataDelivery;
 import me.zhanghailin.bluetooth.task.ITaskManager;
 import me.zhanghailin.bluetooth.task.TaskManager;
+import timber.log.Timber;
 
 public abstract class BleService extends Service {
     private final IBinder binder = new LocalBinder();
@@ -30,6 +31,8 @@ public abstract class BleService extends Service {
     public void onCreate() {
         super.onCreate();
 
+        Timber.d("onCreate");
+
         ITaskManager taskManager = new TaskManager.Builder().build();
 
         BleResponseProcessor processor = new BleResponseProcessor();
@@ -44,6 +47,15 @@ public abstract class BleService extends Service {
         processor.setConnectionManager(connectionManager);
         processor.setDevicePool(devicePool);
 
+        connectAllRecorded();
+
+    }
+
+    protected void connectAllRecorded() {
+        connect(DemoConstants.ADDR);
+        connect(DemoConstants.ADDR_1);
+        connect(DemoConstants.ADDR_3);
+        connect(DemoConstants.ADDR_4);
     }
 
     abstract protected DevicePool createDevicePool(ConnectionManager connectionManager);
