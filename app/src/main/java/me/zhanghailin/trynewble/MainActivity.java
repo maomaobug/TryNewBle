@@ -6,6 +6,7 @@ import android.content.ServiceConnection;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.support.v7.app.AppCompatActivity;
+import android.text.method.ScrollingMovementMethod;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -14,13 +15,13 @@ import android.widget.TextView;
 
 import me.zhanghailin.bluetooth.BleService;
 import me.zhanghailin.bluetooth.DemoConstants;
-import me.zhanghailin.trynewble.protocol.BatteryProtocol;
-import me.zhanghailin.trynewble.protocol.ClickProtocol;
+import me.zhanghailin.trynewble.protocol.BleNotifyProtocol;
+import me.zhanghailin.trynewble.protocol.BleReadProtocol;
 
 public class MainActivity extends AppCompatActivity {
 
     private TextView textView;
-
+    private StringBuilder stringBuilder;
     private BleService bleService;
     private final ServiceConnection serviceConnection = new ServiceConnection() {
         @Override
@@ -42,6 +43,9 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         textView = (TextView) findViewById(R.id.text);
+        textView.setMovementMethod(new ScrollingMovementMethod());
+
+        stringBuilder = new StringBuilder();
     }
 
     @Override
@@ -86,7 +90,6 @@ public class MainActivity extends AppCompatActivity {
         Log.d("main", "connect clicked");
         if (bleService != null) {
             bleService.connect(DemoConstants.ADDR);
-            textView.setText("device connected");
         }
     }
 
@@ -101,10 +104,10 @@ public class MainActivity extends AppCompatActivity {
     public void bindBleClick(View v) {
         IHereDevicePool devicePool = (IHereDevicePool) bleService.getDevicePool();
         IHereDevice device = devicePool.get(DemoConstants.ADDR);
-        device.setOnBleClickListener(new ClickProtocol.OnBleClickListener() {
+        device.setOnBleClickListener(new BleNotifyProtocol.OnBleNotifyListener() {
             @Override
-            public void onBleClick() {
-                textView.setText("Ble Device Clicked");
+            public void onBleNotify(Object value) {
+                updateText("Ble Device Clicked");
             }
         });
     }
@@ -112,15 +115,52 @@ public class MainActivity extends AppCompatActivity {
     public void onBatteryClick(View v) {
         IHereDevicePool devicePool = (IHereDevicePool) bleService.getDevicePool();
         IHereDevice device = devicePool.get(DemoConstants.ADDR);
-        device.battery(new BatteryProtocol.OnReadBatteryCompleteListener() {
+        device.battery(new BleReadProtocol.OnBleReadCompleteListener() {
             @Override
-            public void onReadComplete(int batteryLevel) {
-                textView.setText("电池电量：" + batteryLevel);
+            public void onBleReadComplete(Object value) {
+                updateText("电池电量：" + (int) value);
             }
         });
     }
 
+    public void onSomeTaskClick(View v) {
+        IHereDevicePool devicePool = (IHereDevicePool) bleService.getDevicePool();
+        IHereDevice device = devicePool.get(DemoConstants.ADDR);
+
+        BleReadProtocol.OnBleReadCompleteListener firmware = new BleReadProtocol.OnBleReadCompleteListener() {
+            @Override
+            public void onBleReadComplete(Object value) {
+                updateText("firmware version：" + value);
+            }
+        };
+        BleReadProtocol.OnBleReadCompleteListener battery = new BleReadProtocol.OnBleReadCompleteListener() {
+            @Override
+            public void onBleReadComplete(Object value) {
+                updateText("电池电量：" + (int) value);
+            }
+        };
+
+        for (int i = 0; i < 50; i++) {
+            device.readFirmware(firmware);
+            device.battery(battery);
+            device.middleAlert();
+        }
+
+    }
+
     public void disconnect(View view) {
         Log.d("main", "disconnect clicked");
+
+        if (bleService != null) {
+            bleService.disconnect(DemoConstants.ADDR);
+        }
     }
+
+    private int lineNum = 1;
+
+    private void updateText(String text) {
+        stringBuilder.append(lineNum++).append(". ").append(text).append("\n");
+        textView.setText(stringBuilder.toString());
+    }
+
 }
