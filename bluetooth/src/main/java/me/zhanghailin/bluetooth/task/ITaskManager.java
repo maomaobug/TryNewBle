@@ -1,6 +1,6 @@
 package me.zhanghailin.bluetooth.task;
 
-import me.zhanghailin.bluetooth.request.BleDataRequest;
+import me.zhanghailin.bluetooth.request.ITaskRequest;
 import me.zhanghailin.bluetooth.request.filter.RequestFilter;
 
 /**
@@ -11,7 +11,7 @@ import me.zhanghailin.bluetooth.request.filter.RequestFilter;
  */
 public interface ITaskManager {
 
-    void submitTask(BleDataRequest request);
+    void submitTask(ITaskRequest request);
 
     void finishTask();
 

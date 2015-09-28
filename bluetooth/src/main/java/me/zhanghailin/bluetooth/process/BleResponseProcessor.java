@@ -1,11 +1,13 @@
 package me.zhanghailin.bluetooth.process;
 
+import android.bluetooth.BluetoothGatt;
 import android.bluetooth.BluetoothProfile;
 
 import java.util.UUID;
 
 import me.zhanghailin.bluetooth.HexUtil;
 import me.zhanghailin.bluetooth.connection.ConnectionManager;
+import me.zhanghailin.bluetooth.connector.Connector;
 import me.zhanghailin.bluetooth.device.BleDevice;
 import me.zhanghailin.bluetooth.device.DevicePool;
 import me.zhanghailin.bluetooth.protocol.BluetoothProtocol;
@@ -47,6 +49,8 @@ public class BleResponseProcessor {
                 onConnectionChange(response.address, response.status, response.newState);
                 break;
             case SERVICE_DISCOVERED:
+                connectionManager.nextOperation();
+
                 onServiceDiscovered(response.address);
                 break;
             case VALUE_READ:
@@ -66,6 +70,7 @@ public class BleResponseProcessor {
                 connectionManager.nextOperation();
 
                 onDescriptorWrite(response.address, response.characteristicUuid, response.descriptorUuid);
+                break;
             case RSSI:
                 connectionManager.nextOperation();
 
@@ -81,16 +86,23 @@ public class BleResponseProcessor {
         BleDevice device = devicePool.get(address);
         device.newState(newState);
 
+        if (status != BluetoothGatt.GATT_SUCCESS) {
+//            device.clearAndReconnect();
+            // 先断开连接， 下次回调进入时 close 设备
+            device.getGatt().close();
+            connectionManager.enQueueConnect(address);
+            return;
+        }
+
         if (newState == BluetoothProfile.STATE_DISCONNECTED) {
-            switch (status) {
-                case 133:
-                    device.clearAndReconnect();
-                    break;
-                default:
-                    /* no-op */
-            }
+            // 正常断开连接， 尝试重连
+            connectionManager.enQueueConnect(address);
+
         } else if (newState == BluetoothProfile.STATE_CONNECTED) {
-            device.discoverServices();
+            if (!device.getConnector().isConnected()) {
+                device.getConnector().setState(Connector.STATE_CONNECTED);
+                device.discoverServices();
+            }
         }
     }
 
@@ -123,7 +135,6 @@ public class BleResponseProcessor {
 
     /**
      * 暂时我们应用到的descriptor只有开启通知，不需要额外处理。
-     *
      */
     private void onDescriptorWrite(String address, UUID characteristicUuid, UUID descriptorUuid) {
         BleDevice device = devicePool.get(address);

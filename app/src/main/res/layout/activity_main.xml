@@ -16,26 +16,31 @@
         android:orientation="vertical">
 
         <Button
-            android:id="@+id/btn_connect"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:onClick="connect"
-            android:text="Connect" />
-
-        <Button
-            android:id="@+id/btn_beep"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="20dp"
-            android:onClick="beep"
-            android:text="Beep" />
+            android:onClick="connect1"
+            android:text="connect1" />
 
         <Button
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="20dp"
-            android:onClick="onBatteryClick"
-            android:text="battery" />
+            android:onClick="connect2"
+            android:text="connect2" />
+
+        <Button
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
+            android:onClick="connect3"
+            android:text="connect3" />
+
+        <Button
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
+            android:onClick="connect4"
+            android:text="connect4" />
 
         <Button
             android:layout_width="wrap_content"
@@ -51,14 +56,6 @@
             android:layout_marginTop="20dp"
             android:onClick="onSomeTaskClick"
             android:text="some task" />
-
-        <Button
-            android:id="@+id/btn_disconnect"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="20dp"
-            android:onClick="disconnect"
-            android:text="Disconnect" />
 
     </LinearLayout>
 

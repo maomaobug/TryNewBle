@@ -1,4 +1,4 @@
-package me.zhanghailin.bluetooth.task;
+package me.zhanghailin.bluetooth.task.timer;
 
 import android.os.Handler;
 import android.os.Looper;
@@ -12,17 +12,17 @@ import me.zhanghailin.bluetooth.task.policy.TimeoutPolicy;
  * author shenwenjun
  * Date 9/18/15.
  */
-public class Timeout {
+public class DefaultTimer implements ITimeoutTimer {
 
     private static final String TAG = "Timeout";
 
-    private final static int TIMEOUT = 4 * 1000;
+    private long timeout = 4 * 1000;
 
     private Handler handler;
 
     private TimeoutPolicy timeoutPolicy;
 
-    public Timeout() {
+    public DefaultTimer() {
 
         // 优先使用当前线程环境, 如果如果当前线程没有初始化过 Looper ， 则使用主线程处理超时回调函数
         Looper looper = Looper.myLooper();
@@ -32,10 +32,17 @@ public class Timeout {
         handler = new Handler(looper);
     }
 
-    public void setTimeoutPolicy(TimeoutPolicy timeoutPolicy) {
+    @Override
+    public void setupTimeoutPolicy(TimeoutPolicy timeoutPolicy) {
         this.timeoutPolicy = timeoutPolicy;
     }
 
+    @Override
+    public void setupTimeout(long milliseconds) {
+        timeout = milliseconds;
+    }
+
+    @Override
     public void startTiming() {
         handler.removeCallbacksAndMessages(null);
 
@@ -48,9 +55,10 @@ public class Timeout {
                 }
                 timeoutPolicy.onTaskTimeout();
             }
-        }, TIMEOUT);
+        }, timeout);
     }
 
+    @Override
     public void stopTiming() {
         handler.removeCallbacksAndMessages(null);
 

@@ -7,14 +7,18 @@ import android.bluetooth.BluetoothGattCallback;
 import android.bluetooth.BluetoothManager;
 import android.content.Context;
 
+import me.zhanghailin.bluetooth.connector.Connector;
 import me.zhanghailin.bluetooth.device.BleDevice;
 import me.zhanghailin.bluetooth.device.DevicePool;
 import me.zhanghailin.bluetooth.request.BleDataRequest;
 import me.zhanghailin.bluetooth.task.ITaskManager;
+import me.zhanghailin.bluetooth.task.TaskManager;
+import me.zhanghailin.bluetooth.task.timer.EmptyTimer;
 
 /**
  * Created by zhanghailin on 9/17/15.
  */
+@SuppressWarnings("deprecation")
 public class DemoConnectionManager implements ConnectionManager {
     private DevicePool devicePool;
     private final BluetoothGattCallback callback;
@@ -23,6 +27,8 @@ public class DemoConnectionManager implements ConnectionManager {
     private Context applicationContext;
 
     private ITaskManager taskManager;
+
+    private ITaskManager connectTaskManager;
 
     public DemoConnectionManager(BluetoothGattCallback callback, ITaskManager taskManager, Context context) {
         this.callback = callback;
@@ -34,6 +40,10 @@ public class DemoConnectionManager implements ConnectionManager {
         bluetoothAdapter = bluetoothManager.getAdapter();
 
         this.taskManager = taskManager;
+
+        connectTaskManager = new TaskManager.Builder()
+                .setTimeoutTimer(new EmptyTimer())
+                .build();
     }
 
     @Override
@@ -48,16 +58,15 @@ public class DemoConnectionManager implements ConnectionManager {
 
     @Override
     public void connect(String address) {
+        // 直接连接某个设备
         BluetoothDevice device = bluetoothAdapter.getRemoteDevice(address);
-        BluetoothGatt gatt = device.connectGatt(applicationContext, true, callback);
+        BluetoothGatt gatt = device.connectGatt(applicationContext, false, callback);
         devicePool.buildNewDevice(gatt);
     }
 
     @Override
     public void disconnect(String address) {
-        BleDevice bleDevice = devicePool.get(address);
-        bleDevice.getGatt().disconnect();
-        bleDevice.getGatt().close();
+//        BleDevice bleDevice = devicePool.get(address);
     }
 
     @Override
@@ -69,13 +78,24 @@ public class DemoConnectionManager implements ConnectionManager {
 
     @Override
     public void enQueueDisconnect(String address) {
-
     }
 
     @Override
     public void enQueueConnect(String address) {
-        //xxx 为什么提供 入队连接 的接口， 与上面的 connect 有什么区别
-        //xxx 另外当时讨论的结果是 连接 和 断连 不入队的吧？
+        // 向手机注册连接请求
+        BleDevice bleDevice = devicePool.get(address);
+        if (!bleDevice.getConnector().isConnecting()) {
+            bleDevice.getConnector().setState(Connector.STATE_CONNECTING);
+            BluetoothDevice device = bluetoothAdapter.getRemoteDevice(address);
+            BluetoothGatt gatt = device.connectGatt(applicationContext, true, callback);
+            bleDevice.setGatt(gatt);
+        }
+
+        // TODO: 9/28/15
+//        添加连接队列， 同一时间只发起一个 连接请求，
+//        收到回调后， 发起下一个 连接请求。
+//        若 回调连接成功，则不做其他附加操作。
+//        若 回调连接失败，则将当前连接请求重新加入队列尾， 等待下次连接
     }
 
     @Override

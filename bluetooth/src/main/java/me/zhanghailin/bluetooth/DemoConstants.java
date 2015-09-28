@@ -9,4 +9,6 @@ public interface DemoConstants {
     String ADDR_3 = "57:A3:05:13:C7:E2";
     String ADDR_4 = "00:46:5C:02:15:1E";
 
+    String ADDR_5 = "0A:35:CD:01:32:29";
+    String ADDR_6 = "0A:35:CD:01:32:34";
 }

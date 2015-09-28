@@ -46,16 +46,6 @@ public abstract class BleService extends Service {
 
         processor.setConnectionManager(connectionManager);
         processor.setDevicePool(devicePool);
-
-        connectAllRecorded();
-
-    }
-
-    protected void connectAllRecorded() {
-        connect(DemoConstants.ADDR);
-        connect(DemoConstants.ADDR_1);
-        connect(DemoConstants.ADDR_3);
-        connect(DemoConstants.ADDR_4);
     }
 
     abstract protected DevicePool createDevicePool(ConnectionManager connectionManager);

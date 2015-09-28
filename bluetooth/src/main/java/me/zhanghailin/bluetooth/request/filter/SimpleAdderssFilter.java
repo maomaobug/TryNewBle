@@ -3,7 +3,7 @@ package me.zhanghailin.bluetooth.request.filter;
 import android.text.TextUtils;
 
 import me.zhanghailin.bluetooth.device.BleDevice;
-import me.zhanghailin.bluetooth.request.BleDataRequest;
+import me.zhanghailin.bluetooth.request.ITaskRequest;
 
 /**
  * TryNewBle
@@ -20,11 +20,11 @@ public class SimpleAdderssFilter implements RequestFilter {
     }
 
     @Override
-    public boolean apply(BleDataRequest request) {
+    public boolean apply(ITaskRequest request) {
         if (request == null || bleDevice == null) {
             return false;
         }
-        String tag = request.getTag();
+        String tag = request.tag();
         if (TextUtils.isEmpty(tag)) {
             return false;
         }

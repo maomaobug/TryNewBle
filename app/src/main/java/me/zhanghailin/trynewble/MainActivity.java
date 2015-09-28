@@ -7,7 +7,6 @@ import android.os.Bundle;
 import android.os.IBinder;
 import android.support.v7.app.AppCompatActivity;
 import android.text.method.ScrollingMovementMethod;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -86,19 +85,32 @@ public class MainActivity extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
 
-    public void connect(View view) {
-        Log.d("main", "connect clicked");
+    public void connect1(View view) {
         if (bleService != null) {
             bleService.connect(DemoConstants.ADDR);
+            ((TextView) view).setText(DemoConstants.ADDR);
         }
     }
 
-    public void beep(View view) {
-        Log.d("main", "beep clicked");
+    public void connect2(View view) {
+        if (bleService != null) {
+            bleService.connect(DemoConstants.ADDR_1);
+            ((TextView) view).setText(DemoConstants.ADDR_1);
+        }
+    }
 
-        IHereDevicePool devicePool = (IHereDevicePool) bleService.getDevicePool();
-        IHereDevice device = devicePool.get(DemoConstants.ADDR);
-        device.middleAlert();
+    public void connect3(View view) {
+        if (bleService != null) {
+            bleService.connect(DemoConstants.ADDR_3);
+            ((TextView) view).setText(DemoConstants.ADDR_3);
+        }
+    }
+
+    public void connect4(View view) {
+        if (bleService != null) {
+            bleService.connect(DemoConstants.ADDR_4);
+            ((TextView) view).setText(DemoConstants.ADDR_4);
+        }
     }
 
     public void bindBleClick(View v) {
@@ -112,16 +124,24 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
-    public void onBatteryClick(View v) {
-        IHereDevicePool devicePool = (IHereDevicePool) bleService.getDevicePool();
-        IHereDevice device = devicePool.get(DemoConstants.ADDR);
-        device.battery(new BleReadProtocol.OnBleReadCompleteListener() {
-            @Override
-            public void onBleReadComplete(Object value) {
-                updateText("电池电量：" + (int) value);
-            }
-        });
-    }
+//    public void beep(View view) {
+//        Log.d("main", "beep clicked");
+//
+//        IHereDevicePool devicePool = (IHereDevicePool) bleService.getDevicePool();
+//        IHereDevice device = devicePool.get(DemoConstants.ADDR);
+//        device.middleAlert();
+//    }
+//
+//    public void onBatteryClick(View v) {
+//        IHereDevicePool devicePool = (IHereDevicePool) bleService.getDevicePool();
+//        IHereDevice device = devicePool.get(DemoConstants.ADDR);
+//        device.battery(new BleReadProtocol.OnBleReadCompleteListener() {
+//            @Override
+//            public void onBleReadComplete(Object value) {
+//                updateText("电池电量：" + (int) value);
+//            }
+//        });
+//    }
 
     public void onSomeTaskClick(View v) {
         IHereDevicePool devicePool = (IHereDevicePool) bleService.getDevicePool();
@@ -146,14 +166,6 @@ public class MainActivity extends AppCompatActivity {
             device.middleAlert();
         }
 
-    }
-
-    public void disconnect(View view) {
-        Log.d("main", "disconnect clicked");
-
-        if (bleService != null) {
-            bleService.disconnect(DemoConstants.ADDR);
-        }
     }
 
     private int lineNum = 1;

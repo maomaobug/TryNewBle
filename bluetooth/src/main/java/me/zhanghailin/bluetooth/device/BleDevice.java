@@ -11,8 +11,11 @@ import java.util.UUID;
 
 import me.zhanghailin.bluetooth.StandardBleProfile;
 import me.zhanghailin.bluetooth.connection.ConnectionManager;
+import me.zhanghailin.bluetooth.connector.Connector;
+import me.zhanghailin.bluetooth.connector.DefaultConnector;
 import me.zhanghailin.bluetooth.protocol.BluetoothProtocol;
 import me.zhanghailin.bluetooth.request.BleDataRequest;
+import me.zhanghailin.bluetooth.request.DiscoverServicesRequest;
 import timber.log.Timber;
 
 /**
@@ -25,12 +28,19 @@ public abstract class BleDevice {
     protected final ConnectionManager connectionManager;
     protected int connectionState;
     protected BluetoothGatt gatt;
-    protected String address;
+    protected final String address;
+
+    private Connector connector;
 
     public BleDevice(BluetoothGatt gatt, ConnectionManager connectionManager, String address) {
+        this(gatt, connectionManager, address, new DefaultConnector());
+    }
+
+    public BleDevice(BluetoothGatt gatt, ConnectionManager connectionManager, String address, Connector connector) {
         this.gatt = gatt;
         this.connectionManager = connectionManager;
         this.address = address;
+        this.connector = connector;
     }
 
     //---- 状态相关 ----
@@ -45,8 +55,19 @@ public abstract class BleDevice {
         connectionState = newState;
     }
 
+    public Connector getConnector() {
+        return connector;
+    }
+
+    public void setGatt(BluetoothGatt gatt) {
+        this.gatt = gatt;
+    }
+
+    public BluetoothGatt getGatt() {
+        return gatt;
+    }
+
     /**
-     *
      * @throws IllegalArgumentException If no protocol found for the UUID
      */
     public BluetoothProtocol getProtocol(UUID characteristicUuid) {
@@ -101,7 +122,7 @@ public abstract class BleDevice {
                         boolean writeSuccess = gatt.writeDescriptor(descriptor);
 
                         Timber.i("Descriptor write [%s] for characteristic[%s]",
-                                writeSuccess , protocol.getCharacteristicUuid());
+                                writeSuccess, protocol.getCharacteristicUuid());
 
                         return writeSuccess;
                     }
@@ -122,13 +143,9 @@ public abstract class BleDevice {
         }
     }
 
-    public void clearAndReconnect() {
-        connectionManager.enQueueDisconnect(address);
-        connectionManager.enQueueConnect(address);
-    }
-
     public void discoverServices() {
-        gatt.discoverServices();
+        DiscoverServicesRequest request = new DiscoverServicesRequest(gatt);
+        connectionManager.enQueueRequest(request);
     }
 
 }
