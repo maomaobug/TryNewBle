@@ -6,10 +6,12 @@ import android.content.ServiceConnection;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.text.method.ScrollingMovementMethod;
-import android.view.Menu;
-import android.view.MenuItem;
+import android.util.TypedValue;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.TextView;
 
 import me.zhanghailin.bluetooth.BleService;
@@ -22,6 +24,9 @@ public class MainActivity extends AppCompatActivity {
     private TextView textView;
     private StringBuilder stringBuilder;
     private BleService bleService;
+
+    private String currentAddress;
+
     private final ServiceConnection serviceConnection = new ServiceConnection() {
         @Override
         public void onServiceConnected(ComponentName name, IBinder service) {
@@ -45,6 +50,10 @@ public class MainActivity extends AppCompatActivity {
         textView.setMovementMethod(new ScrollingMovementMethod());
 
         stringBuilder = new StringBuilder();
+
+        RecyclerView recyclerView = (RecyclerView) findViewById(R.id.recyclerView);
+        recyclerView.setLayoutManager(new LinearLayoutManager(this));
+        recyclerView.setAdapter(new Adapter(this));
     }
 
     @Override
@@ -63,59 +72,16 @@ public class MainActivity extends AppCompatActivity {
         textView.setText("disconnected~~~~~");
     }
 
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.menu_main, menu);
-        return true;
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
-        int id = item.getItemId();
-
-        //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
-            return true;
-        }
-
-        return super.onOptionsItemSelected(item);
-    }
-
-    public void connect1(View view) {
+    public void connect(String address) {
+        currentAddress = address;
         if (bleService != null) {
-            bleService.connect(DemoConstants.ADDR);
-            ((TextView) view).setText(DemoConstants.ADDR);
-        }
-    }
-
-    public void connect2(View view) {
-        if (bleService != null) {
-            bleService.connect(DemoConstants.ADDR_1);
-            ((TextView) view).setText(DemoConstants.ADDR_1);
-        }
-    }
-
-    public void connect3(View view) {
-        if (bleService != null) {
-            bleService.connect(DemoConstants.ADDR_3);
-            ((TextView) view).setText(DemoConstants.ADDR_3);
-        }
-    }
-
-    public void connect4(View view) {
-        if (bleService != null) {
-            bleService.connect(DemoConstants.ADDR_4);
-            ((TextView) view).setText(DemoConstants.ADDR_4);
+            bleService.connect(address);
         }
     }
 
     public void bindBleClick(View v) {
         IHereDevicePool devicePool = (IHereDevicePool) bleService.getDevicePool();
-        IHereDevice device = devicePool.get(DemoConstants.ADDR);
+        IHereDevice device = devicePool.get(currentAddress);
         device.setOnBleClickListener(new BleNotifyProtocol.OnBleNotifyListener() {
             @Override
             public void onBleNotify(Object value) {
@@ -145,7 +111,7 @@ public class MainActivity extends AppCompatActivity {
 
     public void onSomeTaskClick(View v) {
         IHereDevicePool devicePool = (IHereDevicePool) bleService.getDevicePool();
-        IHereDevice device = devicePool.get(DemoConstants.ADDR);
+        IHereDevice device = devicePool.get(currentAddress);
 
         BleReadProtocol.OnBleReadCompleteListener firmware = new BleReadProtocol.OnBleReadCompleteListener() {
             @Override
@@ -160,7 +126,7 @@ public class MainActivity extends AppCompatActivity {
             }
         };
 
-        for (int i = 0; i < 50; i++) {
+        for (int i = 0; i < 10; i++) {
             device.readFirmware(firmware);
             device.battery(battery);
             device.middleAlert();
@@ -176,3 +142,72 @@ public class MainActivity extends AppCompatActivity {
     }
 
 }
+
+
+class Adapter extends RecyclerView.Adapter<Holder> implements View.OnClickListener {
+
+    private final static String[] source = DemoConstants.ADDRS;
+
+    private MainActivity mainActivity;
+
+    private float height;
+
+    private RecyclerView.LayoutManager layoutManager;
+
+    public Adapter(MainActivity mainActivity) {
+        this.mainActivity = mainActivity;
+        height = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 50, mainActivity.getResources().getDisplayMetrics());
+    }
+
+    @Override
+    public void onAttachedToRecyclerView(RecyclerView recyclerView) {
+        super.onAttachedToRecyclerView(recyclerView);
+        layoutManager = recyclerView.getLayoutManager();
+    }
+
+    @Override
+    public void onDetachedFromRecyclerView(RecyclerView recyclerView) {
+        super.onDetachedFromRecyclerView(recyclerView);
+        layoutManager = null;
+    }
+
+    @Override
+    public Holder onCreateViewHolder(ViewGroup viewGroup, int i) {
+        TextView textView = new TextView(viewGroup.getContext());
+        textView.setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, (int) height));
+        textView.setClickable(true);
+        textView.setBackgroundResource(R.drawable.abc_btn_borderless_material);
+        return new Holder(textView, this);
+    }
+
+    @Override
+    public void onBindViewHolder(Holder holder, int i) {
+        String data = source[i];
+        holder.textView.setText(data);
+    }
+
+    @Override
+    public int getItemCount() {
+        return source.length;
+    }
+
+    @Override
+    public void onClick(View v) {
+        String address = source[layoutManager.getPosition(v)];
+        mainActivity.connect(address);
+    }
+
+}
+
+class Holder extends RecyclerView.ViewHolder {
+
+    TextView textView;
+
+    public Holder(View itemView, View.OnClickListener listener) {
+        super(itemView);
+        textView = (TextView) itemView;
+        textView.setOnClickListener(listener);
+    }
+
+}
+

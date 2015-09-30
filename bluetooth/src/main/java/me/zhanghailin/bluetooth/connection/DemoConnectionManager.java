@@ -14,6 +14,7 @@ import me.zhanghailin.bluetooth.request.BleDataRequest;
 import me.zhanghailin.bluetooth.task.ITaskManager;
 import me.zhanghailin.bluetooth.task.TaskManager;
 import me.zhanghailin.bluetooth.task.timer.EmptyTimer;
+import timber.log.Timber;
 
 /**
  * Created by zhanghailin on 9/17/15.
@@ -78,6 +79,7 @@ public class DemoConnectionManager implements ConnectionManager {
 
     @Override
     public void enQueueDisconnect(String address) {
+        // TODO: 9/28/15
     }
 
     @Override
@@ -89,6 +91,8 @@ public class DemoConnectionManager implements ConnectionManager {
             BluetoothDevice device = bluetoothAdapter.getRemoteDevice(address);
             BluetoothGatt gatt = device.connectGatt(applicationContext, true, callback);
             bleDevice.setGatt(gatt);
+
+            Timber.d("enQueueConnect address : %s", address);
         }
 
         // TODO: 9/28/15

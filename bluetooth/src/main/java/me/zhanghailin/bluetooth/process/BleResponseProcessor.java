@@ -87,8 +87,8 @@ public class BleResponseProcessor {
         device.newState(newState);
 
         if (status != BluetoothGatt.GATT_SUCCESS) {
-//            device.clearAndReconnect();
             // 先断开连接， 下次回调进入时 close 设备
+            device.getConnector().setState(Connector.STATE_READY_TO_CLOSE);
             device.getGatt().close();
             connectionManager.enQueueConnect(address);
             return;
@@ -115,7 +115,6 @@ public class BleResponseProcessor {
         Timber.i("value notify address[%s], char[%s], value[%s]",
                 address, characteristicUuid, HexUtil.bytesToHex(value));
 
-        // TODO: 9/23/15  区分 notify value 和 read value
         BleDevice device = devicePool.get(address);
         BluetoothProtocol protocol = device.getProtocol(characteristicUuid);
         protocol.setValue(value);

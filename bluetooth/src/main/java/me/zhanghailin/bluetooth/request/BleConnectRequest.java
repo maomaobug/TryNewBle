@@ -1,7 +1,6 @@
 package me.zhanghailin.bluetooth.request;
 
 /**
- * TryNewBle
  * package me.zhanghailin.bluetooth.request
  * author shenwenjun
  * Date 9/28/15.
