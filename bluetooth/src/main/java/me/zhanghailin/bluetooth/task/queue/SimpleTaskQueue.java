@@ -24,6 +24,7 @@ public class SimpleTaskQueue implements TaskQueue {
         mQueue = new ConcurrentLinkedQueue<>();
     }
 
+    @Override
     public boolean addTask(ITaskRequest request) {
         boolean result;
         try {
@@ -56,7 +57,7 @@ public class SimpleTaskQueue implements TaskQueue {
     }
 
     @Override
-    public boolean removeAllTask() {
+    public boolean clearTask() {
         mQueue.clear();
         return true;
     }

@@ -1,5 +1,6 @@
 package me.zhanghailin.bluetooth.process;
 
+import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothGatt;
 import android.bluetooth.BluetoothProfile;
 
@@ -21,18 +22,17 @@ import timber.log.Timber;
 public class BleResponseProcessor {
 
     DevicePool devicePool;
+
     ConnectionManager connectionManager;
 
-    public DevicePool getDevicePool() {
-        return devicePool;
+    private BluetoothAdapter bluetoothAdapter;
+
+    public BleResponseProcessor() {
+        this.bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
     }
 
     public void setDevicePool(DevicePool devicePool) {
         this.devicePool = devicePool;
-    }
-
-    public ConnectionManager getConnectionManager() {
-        return connectionManager;
     }
 
     public void setConnectionManager(ConnectionManager connectionManager) {
@@ -86,24 +86,52 @@ public class BleResponseProcessor {
         BleDevice device = devicePool.get(address);
         device.newState(newState);
 
-        if (status != BluetoothGatt.GATT_SUCCESS) {
-            // 先断开连接， 下次回调进入时 close 设备
-            device.getConnector().setState(Connector.STATE_READY_TO_CLOSE);
+        // 1. 首先判断蓝牙状态， 蓝牙不处于正常打开且可用的情况下时，把所有设备都 close 掉
+        if (bluetoothAdapter.getState() != BluetoothAdapter.STATE_ON) {
+//            蓝牙不处于打开状态的情况下，直接把设备添加到等待连接集合， 以备后续需要时发起连接
             device.getGatt().close();
-            connectionManager.enQueueConnect(address);
+            connectionManager.addWaitingDevice(address);
+            connectionManager.nextConnectionOperation();
             return;
         }
 
-        if (newState == BluetoothProfile.STATE_DISCONNECTED) {
-            // 正常断开连接， 尝试重连
-            connectionManager.enQueueConnect(address);
-
-        } else if (newState == BluetoothProfile.STATE_CONNECTED) {
-            if (!device.getConnector().isConnected()) {
-                device.getConnector().setState(Connector.STATE_CONNECTED);
-                device.discoverServices();
+        // 2. 然后判断 Gatt 操作状态是否为成功
+        if (status != BluetoothGatt.GATT_SUCCESS) {
+            switch (status) {
+                case 133: // 尝试重连， 能救回来
+                    connectionManager.reconnect(address);
+                    connectionManager.addWaitingDevice(address);
+                    break;
+                case 257: // 这个状态的就没见过能活过来的， 加入等待连接队列吧
+                    device.getGatt().close();
+                    connectionManager.addWaitingDevice(address);
+                    break;
             }
+
+            connectionManager.nextConnectionOperation();
+            return;
         }
+
+        // 3. 当操作状态正常成功时, 判断是连接上了设备， 还是设备被断开
+        if (newState == BluetoothProfile.STATE_DISCONNECTED) {
+
+            if (device.getConnector().isConnected()) {
+                //设备之前连上了， 现在发现断开，则需要尝试重连
+                connectionManager.reconnect(address);
+            } else {
+                // 设备从来没有连上过，现在发生了断开 =>
+                // 这种情况很难发生，因为 Gatt 连接不上设备的时候， 返回的 status 不会是 success 也就不会走到这个分支
+                // 既然这样，准备报错吧 !
+                device.getConnector().setState(Connector.STATE_ERROR);
+                Timber.d("executing connect error");
+            }
+        } else if (newState == BluetoothProfile.STATE_CONNECTED) {
+            device.getConnector().setState(Connector.STATE_CONNECTED);
+            connectionManager.removeWaitingDevice(address);
+            device.discoverServices();
+        }
+
+        connectionManager.nextConnectionOperation();
     }
 
     private void onServiceDiscovered(String address) {

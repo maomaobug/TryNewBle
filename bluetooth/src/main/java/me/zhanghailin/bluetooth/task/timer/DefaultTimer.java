@@ -16,7 +16,7 @@ public class DefaultTimer implements ITimeoutTimer {
 
     private static final String TAG = "Timeout";
 
-    private long timeout = 4 * 1000;
+    private long timeout = 10 * 1000;
 
     private Handler handler;
 

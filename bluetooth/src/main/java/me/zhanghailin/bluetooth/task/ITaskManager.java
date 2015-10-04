@@ -15,8 +15,6 @@ public interface ITaskManager {
 
     void finishTask();
 
-    void retryCurrentTask();
-
     /**
      * 使用 filter 批量取消 task
      * </br>
@@ -26,5 +24,7 @@ public interface ITaskManager {
     void cancelTask(RequestFilter filter);
 
     void cancelAllTask();
+
+    ITaskRequest currentTask();
 
 }

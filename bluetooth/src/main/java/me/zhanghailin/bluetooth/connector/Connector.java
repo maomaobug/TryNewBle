@@ -9,15 +9,12 @@ package me.zhanghailin.bluetooth.connector;
 public interface Connector {
 
     int STATE_NO = 0x0000;
-    int STATE_READY_TO_CLOSE = 0x1231;
     int STATE_CONNECTED = 0x1234;
-    int STATE_CONNECTING = 0x1235;
-
-    boolean isConnecting();
+    int STATE_ERROR = 0x1236;
 
     boolean isConnected();
 
-    boolean isReadyToClosed();
+    boolean isError();
 
     void setState(int state);
 

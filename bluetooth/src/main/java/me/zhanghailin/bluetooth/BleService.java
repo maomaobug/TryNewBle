@@ -17,10 +17,10 @@ import me.zhanghailin.bluetooth.task.TaskManager;
 import timber.log.Timber;
 
 public abstract class BleService extends Service {
+
     private final IBinder binder = new LocalBinder();
 
     private ConnectionManager connectionManager;
-    private BleCallback bleCallback;
 
     private DevicePool devicePool;
 
@@ -37,9 +37,8 @@ public abstract class BleService extends Service {
 
         BleResponseProcessor processor = new BleResponseProcessor();
         BleDataDelivery delivery = new HandlerDataDelivery(new BleDataHandler(getMainLooper(), processor));
-        bleCallback = new BleCallback(delivery);
+        BleCallback bleCallback = new BleCallback(delivery);
         connectionManager = new DemoConnectionManager(bleCallback, taskManager, this);
-
 
         devicePool = createDevicePool(connectionManager);
         connectionManager.setDevicePool(devicePool);
@@ -50,20 +49,20 @@ public abstract class BleService extends Service {
 
     abstract protected DevicePool createDevicePool(ConnectionManager connectionManager);
 
-    public void connect(String address) {
-        try {
-            connectionManager.connect(address);
-        } catch (Exception e) {
-            // TODO: Handle if bluetooth is not on
-        }
+    public ConnectionManager getConnectionManager() {
+        return connectionManager;
     }
 
-    public void disconnect(String address) {
-        try {
-            connectionManager.disconnect(address);
-        } catch (Exception e) {
-            // TODO: Handle if bluetooth is not on
-        }
+    public void addDevice(String address) {
+        connectionManager.addNewDevice(address);
+    }
+
+    public void enqueueConnect(String address) {
+        connectionManager.reconnect(address);
+    }
+
+    public void enqueueDisconnect(String address) {
+        connectionManager.close(address);
     }
 
     public DevicePool getDevicePool() {

@@ -23,17 +23,46 @@
         <Button
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="20dp"
-            android:onClick="bindBleClick"
-            android:text="bindBleClick" />
-
+            android:layout_marginTop="10dp"
+            android:onClick="reconnect"
+            android:text="reconnect" />
 
         <Button
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="20dp"
+            android:layout_marginTop="10dp"
+            android:onClick="close"
+            android:text="close" />
+
+        <Button
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:onClick="addDevices"
+            android:text="addDevices" />
+
+        <Button
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:onClick="connectWaiting"
+            android:text="connectWaiting" />
+
+        <Button
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:onClick="bindBleClick"
+            android:text="bindBleClick"
+            android:visibility="gone" />
+
+        <Button
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
             android:onClick="onSomeTaskClick"
-            android:text="some task" />
+            android:text="some task"
+            android:visibility="gone" />
 
     </LinearLayout>
 

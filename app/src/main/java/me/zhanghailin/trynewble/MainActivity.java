@@ -72,10 +72,40 @@ public class MainActivity extends AppCompatActivity {
         textView.setText("disconnected~~~~~");
     }
 
-    public void connect(String address) {
+    public void addDevice(String address) {
         currentAddress = address;
         if (bleService != null) {
-            bleService.connect(address);
+            bleService.addDevice(address);
+        }
+    }
+
+    public void reconnect(View v) {
+        if (bleService != null) {
+            for (String address : DemoConstants.ADDRS) {
+                bleService.enqueueConnect(address);
+            }
+        }
+    }
+
+    public void close(View v) {
+        if (bleService != null) {
+            for (String address : DemoConstants.ADDRS) {
+                bleService.enqueueDisconnect(address);
+            }
+        }
+    }
+
+    public void addDevices(View v) {
+        if (bleService != null) {
+            for (String address : DemoConstants.ADDRS) {
+                bleService.addDevice(address);
+            }
+        }
+    }
+
+    public void connectWaiting(View v) {
+        if (bleService != null) {
+            bleService.getConnectionManager().connectWaitingDevices();
         }
     }
 
@@ -152,6 +182,8 @@ class Adapter extends RecyclerView.Adapter<Holder> implements View.OnClickListen
 
     private float height;
 
+    private RecyclerView recyclerView;
+
     private RecyclerView.LayoutManager layoutManager;
 
     public Adapter(MainActivity mainActivity) {
@@ -162,13 +194,15 @@ class Adapter extends RecyclerView.Adapter<Holder> implements View.OnClickListen
     @Override
     public void onAttachedToRecyclerView(RecyclerView recyclerView) {
         super.onAttachedToRecyclerView(recyclerView);
-        layoutManager = recyclerView.getLayoutManager();
+        this.recyclerView = recyclerView;
+        this.layoutManager = recyclerView.getLayoutManager();
     }
 
     @Override
     public void onDetachedFromRecyclerView(RecyclerView recyclerView) {
         super.onDetachedFromRecyclerView(recyclerView);
-        layoutManager = null;
+        this.recyclerView = null;
+        this.layoutManager = null;
     }
 
     @Override
@@ -194,7 +228,8 @@ class Adapter extends RecyclerView.Adapter<Holder> implements View.OnClickListen
     @Override
     public void onClick(View v) {
         String address = source[layoutManager.getPosition(v)];
-        mainActivity.connect(address);
+
+        mainActivity.addDevice(address);
     }
 
 }

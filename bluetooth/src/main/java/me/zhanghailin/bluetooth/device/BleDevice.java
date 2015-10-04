@@ -1,5 +1,6 @@
 package me.zhanghailin.bluetooth.device;
 
+import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothGatt;
 import android.bluetooth.BluetoothGattCharacteristic;
 import android.bluetooth.BluetoothGattDescriptor;
@@ -26,27 +27,26 @@ public abstract class BleDevice {
 
     protected final List<BluetoothProtocol> protocols = new ArrayList<>();
     protected final ConnectionManager connectionManager;
+    private final BluetoothDevice device;
     protected int connectionState;
     protected BluetoothGatt gatt;
-    protected final String address;
 
     private Connector connector;
 
-    public BleDevice(BluetoothGatt gatt, ConnectionManager connectionManager, String address) {
-        this(gatt, connectionManager, address, new DefaultConnector());
+    public BleDevice(ConnectionManager connectionManager, BluetoothDevice device) {
+        this(connectionManager, device, new DefaultConnector());
     }
 
-    public BleDevice(BluetoothGatt gatt, ConnectionManager connectionManager, String address, Connector connector) {
-        this.gatt = gatt;
+    public BleDevice(ConnectionManager connectionManager, BluetoothDevice device, Connector connector) {
         this.connectionManager = connectionManager;
-        this.address = address;
+        this.device = device;
         this.connector = connector;
     }
 
     //---- 状态相关 ----
 
     public String getAddress() {
-        return address;
+        return device.getAddress();
     }
 
     public abstract void setRssi(int rssi);
@@ -65,6 +65,10 @@ public abstract class BleDevice {
 
     public BluetoothGatt getGatt() {
         return gatt;
+    }
+
+    public BluetoothDevice getDevice() {
+        return device;
     }
 
     /**

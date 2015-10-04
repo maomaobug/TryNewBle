@@ -14,18 +14,8 @@ public abstract class BleDataRequest implements ITaskRequest {
 
     private final BluetoothGatt gatt;
 
-    private volatile boolean running;
-
     public BleDataRequest(BluetoothGatt gatt) {
         this.gatt = gatt;
-    }
-
-    public void setRunning(boolean running) {
-        this.running = running;
-    }
-
-    public boolean isRunning() {
-        return running;
     }
 
     /**

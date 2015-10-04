@@ -11,18 +11,13 @@ public class DefaultConnector implements Connector {
     private int mState = STATE_NO;
 
     @Override
-    public boolean isConnecting() {
-        return mState == STATE_CONNECTING;
-    }
-
-    @Override
     public boolean isConnected() {
         return mState == STATE_CONNECTED;
     }
 
     @Override
-    public boolean isReadyToClosed() {
-        return mState == STATE_READY_TO_CLOSE;
+    public boolean isError() {
+        return mState == STATE_ERROR;
     }
 
     @Override

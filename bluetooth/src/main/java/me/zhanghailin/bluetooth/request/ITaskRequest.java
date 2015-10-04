@@ -8,10 +8,6 @@ package me.zhanghailin.bluetooth.request;
  */
 public interface ITaskRequest {
 
-    void setRunning(boolean running);
-
-    boolean isRunning();
-
     String tag();
 
     boolean execute();

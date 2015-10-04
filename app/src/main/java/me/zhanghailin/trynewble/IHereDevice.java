@@ -1,6 +1,6 @@
 package me.zhanghailin.trynewble;
 
-import android.bluetooth.BluetoothGatt;
+import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothGattCharacteristic;
 import android.bluetooth.BluetoothGattService;
 
@@ -27,8 +27,8 @@ public class IHereDevice extends BleDevice {
     private final LinkLossProtocol linkLossProtocol = new LinkLossProtocol();
     private final FirmwareProtocol firmwareProtocol = new FirmwareProtocol();
 
-    public IHereDevice(BluetoothGatt gatt, ConnectionManager connectionManager, String address) {
-        super(gatt, connectionManager, address);
+    public IHereDevice(ConnectionManager connectionManager, BluetoothDevice device) {
+        super(connectionManager, device);
     }
 
     {

@@ -28,7 +28,7 @@ public interface TaskQueue {
 
     boolean removeTask(ITaskRequest request);
 
-    boolean removeAllTask();
+    boolean clearTask();
 
     boolean isEmpty();
 

@@ -1,6 +1,6 @@
 package me.zhanghailin.trynewble;
 
-import android.bluetooth.BluetoothGatt;
+import android.bluetooth.BluetoothAdapter;
 import android.util.Log;
 
 import me.zhanghailin.bluetooth.connection.ConnectionManager;
@@ -22,19 +22,20 @@ public class IHereDevicePool extends DevicePool<IHereDevice> {
     }
 
     @Override
-    public void buildNewDevice(BluetoothGatt gatt) {
-        Log.i("iHereDevicePool", "build new device");
+    public IHereDevice buildNewDevice(BluetoothAdapter adapter, String address) {
 
-        String address = gatt.getDevice().getAddress();
+        IHereDevice iHereDevice;
         if (deviceMap.containsKey(address)) {
+            iHereDevice = deviceMap.get(address);
             Timber.i("duplicate not building");
-            return;
+        } else {
+            Timber.i("build new device");
+            iHereDevice = new IHereDevice(connectionManager, adapter.getRemoteDevice(address));
+            deviceMap.put(address, iHereDevice);
         }
 
-        IHereDevice device = new IHereDevice(gatt, connectionManager, address);
-        deviceMap.put(address, device);
-
         Log.d("IHereDevicePool", "device map size: " + deviceMap.size());
+        return iHereDevice;
     }
 
 }
