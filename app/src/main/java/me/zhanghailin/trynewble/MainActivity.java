@@ -72,11 +72,8 @@ public class MainActivity extends AppCompatActivity {
         textView.setText("disconnected~~~~~");
     }
 
-    public void addDevice(String address) {
+    public void setCurrent(String address) {
         currentAddress = address;
-        if (bleService != null) {
-            bleService.addDevice(address);
-        }
     }
 
     public void reconnect(View v) {
@@ -120,24 +117,22 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
-//    public void beep(View view) {
-//        Log.d("main", "beep clicked");
-//
-//        IHereDevicePool devicePool = (IHereDevicePool) bleService.getDevicePool();
-//        IHereDevice device = devicePool.get(DemoConstants.ADDR);
-//        device.middleAlert();
-//    }
-//
-//    public void onBatteryClick(View v) {
-//        IHereDevicePool devicePool = (IHereDevicePool) bleService.getDevicePool();
-//        IHereDevice device = devicePool.get(DemoConstants.ADDR);
-//        device.battery(new BleReadProtocol.OnBleReadCompleteListener() {
-//            @Override
-//            public void onBleReadComplete(Object value) {
-//                updateText("电池电量：" + (int) value);
-//            }
-//        });
-//    }
+    public void beep(View view) {
+        IHereDevicePool devicePool = (IHereDevicePool) bleService.getDevicePool();
+        IHereDevice device = devicePool.get(currentAddress);
+        device.middleAlert();
+    }
+
+    public void onBatteryClick(View v) {
+        IHereDevicePool devicePool = (IHereDevicePool) bleService.getDevicePool();
+        IHereDevice device = devicePool.get(currentAddress);
+        device.battery(new BleReadProtocol.OnBleReadCompleteListener() {
+            @Override
+            public void onBleReadComplete(Object value) {
+                updateText("电池电量：" + (int) value);
+            }
+        });
+    }
 
     public void onSomeTaskClick(View v) {
         IHereDevicePool devicePool = (IHereDevicePool) bleService.getDevicePool();
@@ -229,7 +224,7 @@ class Adapter extends RecyclerView.Adapter<Holder> implements View.OnClickListen
     public void onClick(View v) {
         String address = source[layoutManager.getPosition(v)];
 
-        mainActivity.addDevice(address);
+        mainActivity.setCurrent(address);
     }
 
 }

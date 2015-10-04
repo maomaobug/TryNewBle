@@ -4,7 +4,7 @@ import java.util.Iterator;
 
 import me.zhanghailin.bluetooth.request.ITaskRequest;
 import me.zhanghailin.bluetooth.request.filter.RequestFilter;
-import me.zhanghailin.bluetooth.task.executor.SimpleTaskExecutor;
+import me.zhanghailin.bluetooth.task.executor.BleTaskExecutor;
 import me.zhanghailin.bluetooth.task.executor.TaskExecutor;
 import me.zhanghailin.bluetooth.task.policy.SimpleFinishPolicy;
 import me.zhanghailin.bluetooth.task.policy.TimeoutPolicy;
@@ -116,7 +116,7 @@ public class TaskManager implements ITaskManager {
             mTaskManager = new TaskManager();
 
             mTaskManager.taskQueue = new SimpleTaskQueue();
-            mTaskManager.taskExecutor = new SimpleTaskExecutor();
+            mTaskManager.taskExecutor = new BleTaskExecutor();
 
             mTaskManager.timeoutTimer = new EmptyTimer();
 
