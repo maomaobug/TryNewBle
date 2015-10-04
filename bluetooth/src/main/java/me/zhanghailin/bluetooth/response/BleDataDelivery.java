@@ -10,15 +10,18 @@ public interface BleDataDelivery {
 
     void onNewConnectionState(String address, int status, int newState);
 
-    void onServiceDiscovered(String address);
+    void onServiceDiscovered(String address, int status);
 
-    void onValueRead(String address, UUID characteristicUuid, byte[] value);
+    void onValueRead(String address, UUID characteristicUuid, byte[] value, int status);
 
-    void onValueWrite(String address, UUID characteristicUuid);
+    void onValueWrite(String address, UUID characteristicUuid, int status);
 
     void onValueNotified(String address, UUID characteristicUuid, byte[] value);
 
-    void onRssi(String address, int rssi);
+    void onDescriptorRead(String address, UUID characteristicUuid, UUID descriptorUuid, int status);
 
-    void onDescriptorWrite(String address, UUID characteristicUuid, UUID descriptorUuid);
+    void onDescriptorWrite(String address, UUID characteristicUuid, UUID descriptorUuid, int status);
+
+    void onRssi(String address, int rssi, int status);
+
 }

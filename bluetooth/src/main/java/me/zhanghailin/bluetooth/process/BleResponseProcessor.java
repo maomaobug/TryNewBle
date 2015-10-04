@@ -43,7 +43,6 @@ public class BleResponseProcessor {
         if (response == null) {
             return;
         }
-
         switch (response.type) {
             case CONNECTION_STATE:
                 onConnectionChange(response.address, response.status, response.newState);
@@ -51,25 +50,30 @@ public class BleResponseProcessor {
             case SERVICE_DISCOVERED:
                 connectionManager.nextOperation();
 
-                onServiceDiscovered(response.address);
+                onServiceDiscovered(response.address, response.status);
                 break;
             case VALUE_READ:
                 connectionManager.nextOperation();
 
-                onNewValue(response.address, response.characteristicUuid, response.value);
+                onNewValue(response.address, response.characteristicUuid, response.value, response.status);
                 break;
             case VALUE_WRITE:
                 connectionManager.nextOperation();
 
-                onValueWrite(response.address, response.characteristicUuid);
+                onValueWrite(response.address, response.characteristicUuid, response.status);
                 break;
             case VALUE_NOTIFIED:
                 onValueNotify(response.address, response.characteristicUuid, response.value);
                 break;
+            case DESCRIPTOR_READ:
+                connectionManager.nextOperation();
+
+                onDescriptorRead(response.address, response.characteristicUuid, response.descriptorUuid, response.status);
+                break;
             case DESCRIPTOR_WRITE:
                 connectionManager.nextOperation();
 
-                onDescriptorWrite(response.address, response.characteristicUuid, response.descriptorUuid);
+                onDescriptorWrite(response.address, response.characteristicUuid, response.descriptorUuid, response.status);
                 break;
             case RSSI:
                 connectionManager.nextOperation();
@@ -134,7 +138,9 @@ public class BleResponseProcessor {
         connectionManager.nextConnectionOperation();
     }
 
-    private void onServiceDiscovered(String address) {
+    private void onServiceDiscovered(String address, int status) {
+        Timber.i("service discovered address[%s] status[%s]", address, status);
+
         BleDevice device = devicePool.get(address);
         device.registerNotificationProtocols();
     }
@@ -148,27 +154,36 @@ public class BleResponseProcessor {
         protocol.setValue(value);
     }
 
-    private void onNewValue(String address, UUID characteristicUuid, byte[] value) {
+    private void onNewValue(String address, UUID characteristicUuid, byte[] value, int status) {
         Timber.i("new value address[%s], char[%s], value[%s]",
                 address, characteristicUuid, HexUtil.bytesToHex(value));
+
         BleDevice device = devicePool.get(address);
         BluetoothProtocol protocol = device.getProtocol(characteristicUuid);
         protocol.setValue(value);
     }
 
-    private void onValueWrite(String address, UUID characteristicUuid) {
-        Timber.i("write address[%s] char[%s]", address, characteristicUuid);
+    private void onValueWrite(String address, UUID characteristicUuid, int status) {
+        Timber.i("write address[%s] char[%s] status[%s]", address, characteristicUuid, status);
+    }
+
+    private void onDescriptorRead(String address, UUID characteristicUuid, UUID descriptorUuid, int status) {
+        Timber.i("read address[%s] char[%s] desc[%s] status[%s]", address, characteristicUuid, descriptorUuid, status);
     }
 
     /**
      * 暂时我们应用到的descriptor只有开启通知，不需要额外处理。
      */
-    private void onDescriptorWrite(String address, UUID characteristicUuid, UUID descriptorUuid) {
+    private void onDescriptorWrite(String address, UUID characteristicUuid, UUID descriptorUuid, int status) {
+        Timber.i("write address[%s] char[%s] desc[%s] status[%s]", address, characteristicUuid, descriptorUuid, status);
+
         BleDevice device = devicePool.get(address);
         device.onDescriptorWrite(characteristicUuid, descriptorUuid);
     }
 
     private void onRssi(String address, int rssi) {
+        Timber.i("rssi address[%s] rssi[%s]", address, rssi);
+
         BleDevice device = devicePool.get(address);
         device.setRssi(rssi);
     }

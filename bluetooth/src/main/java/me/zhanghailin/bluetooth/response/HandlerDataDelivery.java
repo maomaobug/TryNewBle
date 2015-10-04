@@ -30,21 +30,21 @@ public class HandlerDataDelivery implements BleDataDelivery {
     }
 
     @Override
-    public void onServiceDiscovered(String address) {
-        BleDataResponse response = BleDataResponse.buildServiceDiscovered(address);
+    public void onServiceDiscovered(String address, int status) {
+        BleDataResponse response = BleDataResponse.buildServiceDiscovered(address, status);
         deliverResponse(response);
     }
 
     @Override
-    public void onValueRead(String address, UUID characteristicUuid, byte[] value) {
+    public void onValueRead(String address, UUID characteristicUuid, byte[] value, int status) {
         BleDataResponse response =
-                BleDataResponse.buildValueRead(address, characteristicUuid, value);
+                BleDataResponse.buildValueRead(address, characteristicUuid, value, status);
         deliverResponse(response);
     }
 
     @Override
-    public void onValueWrite(String address, UUID characteristicUuid) {
-        BleDataResponse response = BleDataResponse.buildValueWrite(address, characteristicUuid);
+    public void onValueWrite(String address, UUID characteristicUuid, int status) {
+        BleDataResponse response = BleDataResponse.buildValueWrite(address, characteristicUuid, status);
         deliverResponse(response);
     }
 
@@ -56,15 +56,23 @@ public class HandlerDataDelivery implements BleDataDelivery {
     }
 
     @Override
-    public void onDescriptorWrite(String address, UUID characteristicUuid, UUID descriptorUuid) {
+    public void onDescriptorRead(String address, UUID characteristicUuid, UUID descriptorUuid, int status) {
         BleDataResponse response =
-                BleDataResponse.buildDescriptorWrite(address, characteristicUuid, descriptorUuid);
+                BleDataResponse.buildDescriptorRead(address, characteristicUuid, descriptorUuid, status);
         deliverResponse(response);
     }
 
     @Override
-    public void onRssi(String address, int rssi) {
-        BleDataResponse response = BleDataResponse.buildRssi(address, rssi);
+    public void onDescriptorWrite(String address, UUID characteristicUuid, UUID descriptorUuid, int status) {
+        BleDataResponse response =
+                BleDataResponse.buildDescriptorWrite(address, characteristicUuid, descriptorUuid, status);
         deliverResponse(response);
     }
+
+    @Override
+    public void onRssi(String address, int rssi, int status) {
+        BleDataResponse response = BleDataResponse.buildRssi(address, rssi, status);
+        deliverResponse(response);
+    }
+
 }

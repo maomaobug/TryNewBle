@@ -26,7 +26,7 @@ public class BleCallback extends BluetoothGattCallback {
     public void onConnectionStateChange(BluetoothGatt gatt, int status, int newState) {
         String address = gatt.getDevice().getAddress();
 
-        Log.d(TAG, "new state address " + address +" newState:" + newState + " status:" + status);
+        Log.d(TAG, "new state address " + address + " newState:" + newState + " status:" + status);
 
         dataDeliver.onNewConnectionState(address, status, newState);
     }
@@ -35,7 +35,7 @@ public class BleCallback extends BluetoothGattCallback {
     public void onServicesDiscovered(BluetoothGatt gatt, int status) {
         String address = gatt.getDevice().getAddress();
         Log.d(TAG, "service discovered address " + address);
-        dataDeliver.onServiceDiscovered(address);
+        dataDeliver.onServiceDiscovered(address, status);
     }
 
     @Override
@@ -44,14 +44,14 @@ public class BleCallback extends BluetoothGattCallback {
         UUID characteristicUuid = characteristic.getUuid();
         Log.d(TAG, "read uuid " + characteristicUuid.toString() + " address" + address);
         byte[] value = characteristic.getValue();
-        dataDeliver.onValueRead(address, characteristicUuid, value);
+        dataDeliver.onValueRead(address, characteristicUuid, value, status);
     }
 
     @Override
     public void onCharacteristicWrite(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic, int status) {
         String address = gatt.getDevice().getAddress();
         UUID characteristicUuid = characteristic.getUuid();
-        dataDeliver.onValueWrite(address, characteristicUuid);
+        dataDeliver.onValueWrite(address, characteristicUuid, status);
     }
 
     @Override
@@ -63,17 +63,25 @@ public class BleCallback extends BluetoothGattCallback {
     }
 
     @Override
+    public void onDescriptorRead(BluetoothGatt gatt, BluetoothGattDescriptor descriptor, int status) {
+        String address = gatt.getDevice().getAddress();
+        UUID characteristicUuid = descriptor.getCharacteristic().getUuid();
+        UUID descriptorUuid = descriptor.getUuid();
+        dataDeliver.onDescriptorRead(address, characteristicUuid, descriptorUuid, status);
+    }
+
+    @Override
     public void onDescriptorWrite(BluetoothGatt gatt, BluetoothGattDescriptor descriptor, int status) {
         String address = gatt.getDevice().getAddress();
         UUID characteristicUuid = descriptor.getCharacteristic().getUuid();
         UUID descriptorUuid = descriptor.getUuid();
-        dataDeliver.onDescriptorWrite(address, characteristicUuid, descriptorUuid);
+        dataDeliver.onDescriptorWrite(address, characteristicUuid, descriptorUuid, status);
     }
 
     @Override
     public void onReadRemoteRssi(BluetoothGatt gatt, int rssi, int status) {
         String address = gatt.getDevice().getAddress();
-        dataDeliver.onRssi(address, rssi);
+        dataDeliver.onRssi(address, rssi, status);
     }
 
     @Override

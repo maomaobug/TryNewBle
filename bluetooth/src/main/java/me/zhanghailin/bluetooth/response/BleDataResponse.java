@@ -35,9 +35,9 @@ public class BleDataResponse {
         VALUE_READ,
         VALUE_WRITE,
         VALUE_NOTIFIED,
+        DESCRIPTOR_READ,
         DESCRIPTOR_WRITE,
-        RSSI,
-        ;
+        RSSI,;
     }
 
     public static BleDataResponse buildConnectionState(String address, int status, int newState) {
@@ -48,24 +48,27 @@ public class BleDataResponse {
                 .build(Type.CONNECTION_STATE);
     }
 
-    public static BleDataResponse buildServiceDiscovered(String address) {
+    public static BleDataResponse buildServiceDiscovered(String address, int status) {
         return new Builder()
                 .setAddress(address)
+                .setStatus(status)
                 .build(Type.SERVICE_DISCOVERED);
     }
 
-    public static BleDataResponse buildValueRead(String address, UUID characteristicUuid, byte[] value) {
+    public static BleDataResponse buildValueRead(String address, UUID characteristicUuid, byte[] value, int status) {
         return new Builder()
                 .setAddress(address)
                 .setCharacteristicUuid(characteristicUuid)
                 .setValue(value)
+                .setStatus(status)
                 .build(Type.VALUE_READ);
     }
 
-    public static BleDataResponse buildValueWrite(String address, UUID characteristicUuid) {
+    public static BleDataResponse buildValueWrite(String address, UUID characteristicUuid, int status) {
         return new Builder()
                 .setAddress(address)
                 .setCharacteristicUuid(characteristicUuid)
+                .setStatus(status)
                 .build(Type.VALUE_WRITE);
     }
 
@@ -77,19 +80,31 @@ public class BleDataResponse {
                 .build(Type.VALUE_NOTIFIED);
     }
 
-    public static BleDataResponse buildDescriptorWrite(String address, UUID characteristicUuid,
-                                                       UUID descriptorUuid) {
+    public static BleDataResponse buildDescriptorRead(String address, UUID characteristicUuid,
+                                                      UUID descriptorUuid, int status) {
         return new Builder()
                 .setAddress(address)
                 .setCharacteristicUuid(characteristicUuid)
                 .setDescriptorUuid(descriptorUuid)
+                .setStatus(status)
+                .build(Type.DESCRIPTOR_READ);
+    }
+
+    public static BleDataResponse buildDescriptorWrite(String address, UUID characteristicUuid,
+                                                       UUID descriptorUuid, int status) {
+        return new Builder()
+                .setAddress(address)
+                .setCharacteristicUuid(characteristicUuid)
+                .setDescriptorUuid(descriptorUuid)
+                .setStatus(status)
                 .build(Type.DESCRIPTOR_WRITE);
     }
 
-    public static BleDataResponse buildRssi(String address, int rssi) {
+    public static BleDataResponse buildRssi(String address, int rssi, int status) {
         return new Builder()
                 .setAddress(address)
                 .setRssi(rssi)
+                .setStatus(status)
                 .build(Type.RSSI);
     }
 
@@ -104,7 +119,7 @@ public class BleDataResponse {
 
         public BleDataResponse build(Type type) {
             return new BleDataResponse(type,
-                    buildingAddress, buildingStatus,buildingNewState, buildingCharacteristicUuid,
+                    buildingAddress, buildingStatus, buildingNewState, buildingCharacteristicUuid,
                     buildingDescriptorUuid, buildingValue, buildingRssi);
         }
 
