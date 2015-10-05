@@ -1,7 +1,6 @@
 package me.zhanghailin.bluetooth.device;
 
 import android.bluetooth.BluetoothAdapter;
-import android.bluetooth.BluetoothGatt;
 
 import java.util.HashMap;
 import java.util.Iterator;
@@ -32,9 +31,7 @@ public abstract class DevicePool<T extends BleDevice> {
         while (iterator.hasNext()) {
             Map.Entry<String, T> entry = iterator.next();
 
-            BluetoothGatt gatt = entry.getValue().gatt;
-//            gatt.disconnect();
-            gatt.close();
+            entry.getValue().closeSafely();
 
             iterator.remove();
         }
