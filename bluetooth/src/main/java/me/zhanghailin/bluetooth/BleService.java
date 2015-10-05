@@ -57,7 +57,7 @@ public abstract class BleService extends Service {
         connectionManager.addNewDevice(address);
     }
 
-    public void enqueueConnect(String address) {
+    public void autoReconnect(String address) {
         connectionManager.reconnect(address);
     }
 

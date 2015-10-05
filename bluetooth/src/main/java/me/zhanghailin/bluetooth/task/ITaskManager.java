@@ -13,6 +13,10 @@ public interface ITaskManager {
 
     void submitTask(ITaskRequest request);
 
+    /**
+     * 需要保证即使重复调用该函数， 也不能影响程序逻辑正常执行
+     * 例如 断开连接时， 请求队列中的数据没有增加， 但是能够触发 finishTask()
+     */
     void finishTask();
 
     /**

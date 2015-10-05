@@ -36,9 +36,6 @@ public class ReconnectRequest implements ITaskRequest {
     public boolean execute() {
         boolean result = true;
         try {
-            if (bleDevice.getGatt() != null) {
-                bleDevice.getGatt().close();
-            }
             BluetoothDevice device = bleDevice.getDevice();
             BluetoothGatt gatt = device.connectGatt(context, true, bleCallback);
             bleDevice.setGatt(gatt);

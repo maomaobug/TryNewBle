@@ -21,8 +21,8 @@ public interface DemoConstants {
 
 //            "00:46:5C:02:15:1E",
 //
-            ADDR_5,
-            ADDR_6,
+//            ADDR_5,
+//            ADDR_6,
             ADDR_7,
             ADDR_8,
 //

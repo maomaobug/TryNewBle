@@ -79,7 +79,7 @@ public class MainActivity extends AppCompatActivity {
     public void reconnect(View v) {
         if (bleService != null) {
             for (String address : DemoConstants.ADDRS) {
-                bleService.enqueueConnect(address);
+                bleService.autoReconnect(address);
             }
         }
     }

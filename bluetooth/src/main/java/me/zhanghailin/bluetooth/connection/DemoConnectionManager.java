@@ -118,7 +118,10 @@ public class DemoConnectionManager implements ConnectionManager {
     @Override
     public void close(String address) {
         BleDevice bleDevice = devicePool.buildNewDevice(bluetoothAdapter, address);
-        bleDevice.getGatt().close();
+        if (bleDevice.getGatt() != null) {
+            bleDevice.getGatt().close();
+            bleDevice.setGatt(null);
+        }
     }
 
     @Override

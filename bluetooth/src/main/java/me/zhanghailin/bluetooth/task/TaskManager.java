@@ -38,7 +38,8 @@ public class TaskManager implements ITaskManager {
 
     @Override
     public void submitTask(ITaskRequest request) {
-        Timber.d("submit executing  %s %s", request.getClass().getSimpleName(), request.tag());
+        Timber.d("submit exect  %s %s", request.getClass().getSimpleName(), request.tag());
+
         taskQueue.addTask(request);
 
         nextTask();
@@ -46,6 +47,12 @@ public class TaskManager implements ITaskManager {
 
     @Override
     public void finishTask() {
+        if (currentTask == null) {
+            Timber.d("finish exect 飞来横祸一记");
+        } else {
+            Timber.d("finish exect  %s %s", currentTask.getClass().getSimpleName(), currentTask.tag());
+        }
+
         currentTask = null;
 
         timeoutTimer.stopTiming();

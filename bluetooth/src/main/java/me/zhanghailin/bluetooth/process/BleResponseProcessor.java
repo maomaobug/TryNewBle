@@ -92,33 +92,37 @@ public class BleResponseProcessor {
 
         // 1. 首先判断蓝牙状态， 蓝牙不处于正常打开且可用的情况下时，把所有设备都 close 掉
         if (bluetoothAdapter.getState() != BluetoothAdapter.STATE_ON) {
+            connectionManager.nextConnectionOperation();
 //            蓝牙不处于打开状态的情况下，直接把设备添加到等待连接集合， 以备后续需要时发起连接
             device.getGatt().close();
+            device.setGatt(null);
             connectionManager.addWaitingDevice(address);
-            connectionManager.nextConnectionOperation();
             return;
         }
 
-        // 2. 然后判断 Gatt 操作状态是否为成功
+        // 2. 然后判断 Gatt 操作状态是否为成功， 连接不在范围内的设备时会进入这里
         if (status != BluetoothGatt.GATT_SUCCESS) {
+            device.getGatt().close();
+            device.setGatt(null);
             switch (status) {
                 case 133: // 尝试重连， 能救回来
                     connectionManager.reconnect(address);
                     connectionManager.addWaitingDevice(address);
                     break;
                 case 257: // 这个状态的就没见过能活过来的， 加入等待连接队列吧
-                    device.getGatt().close();
                     connectionManager.addWaitingDevice(address);
+                default: //其他错误情况 忽略， 直接进行下一个任务
+                    connectionManager.nextConnectionOperation();
                     break;
             }
-
-            connectionManager.nextConnectionOperation();
             return;
         }
 
         // 3. 当操作状态正常成功时, 判断是连接上了设备， 还是设备被断开
         if (newState == BluetoothProfile.STATE_DISCONNECTED) {
 
+            device.getGatt().close();
+            device.setGatt(null);
             if (device.getConnector().isConnected()) {
                 //设备之前连上了， 现在发现断开，则需要尝试重连
                 connectionManager.reconnect(address);
@@ -128,14 +132,15 @@ public class BleResponseProcessor {
                 // 既然这样，准备报错吧 !
                 device.getConnector().setState(Connector.STATE_ERROR);
                 Timber.d("executing connect error");
+                connectionManager.nextConnectionOperation();
             }
         } else if (newState == BluetoothProfile.STATE_CONNECTED) {
+            connectionManager.nextConnectionOperation();
+
             device.getConnector().setState(Connector.STATE_CONNECTED);
             connectionManager.removeWaitingDevice(address);
             device.discoverServices();
         }
-
-        connectionManager.nextConnectionOperation();
     }
 
     private void onServiceDiscovered(String address, int status) {
