@@ -1,6 +1,8 @@
 package me.zhanghailin.bluetooth.task;
 
+import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
 
 import me.zhanghailin.bluetooth.request.ITaskRequest;
 import me.zhanghailin.bluetooth.request.filter.RequestFilter;
@@ -48,14 +50,19 @@ public class TaskManager implements ITaskManager {
     @Override
     public void finishTask() {
         if (currentTask == null) {
-            Timber.d("finish exect 飞来横祸一记");
+            Timber.d("finish exef 飞来横祸一记");
         } else {
-            Timber.d("finish exect  %s %s", currentTask.getClass().getSimpleName(), currentTask.tag());
+            Timber.d("finish exef  %s %s", currentTask.getClass().getSimpleName(), currentTask.tag());
         }
 
         currentTask = null;
 
         timeoutTimer.stopTiming();
+    }
+
+    @Override
+    public void finishTaskWithRunNext() {
+        finishTask();
 
         nextTask();
     }
@@ -73,6 +80,12 @@ public class TaskManager implements ITaskManager {
                 localQueue.removeTask(dataRequest);
             }
         }
+
+        ITaskRequest currentTask = currentTask();
+        if (currentTask != null && filter.apply(currentTask)) {
+            // 蓝牙没有办法停止当前任务, 这里直接 finishTaskWithRunNext
+            finishTask();
+        }
     }
 
     @Override
@@ -83,6 +96,18 @@ public class TaskManager implements ITaskManager {
     @Override
     public ITaskRequest currentTask() {
         return currentTask;
+    }
+
+    @Override
+    public List<ITaskRequest> listTask() {
+        Iterator<ITaskRequest> iterator = taskQueue.iterator();
+        List<ITaskRequest> list = new ArrayList<>();
+
+        while (iterator.hasNext()) {
+            list.add(iterator.next());
+        }
+
+        return list;
     }
 
     private void nextTask() {
@@ -110,8 +135,11 @@ public class TaskManager implements ITaskManager {
     private void performExecute() {
         timeoutTimer.startTiming();
         boolean success = taskExecutor.executeTask(currentTask);
-        if (!success) {
-            finishTask();
+        if (success) {
+            taskExecutor.onExecuteSuccess(currentTask);
+        } else {
+            taskExecutor.onExecuteFailed(currentTask);
+            finishTaskWithRunNext();
         }
     }
 

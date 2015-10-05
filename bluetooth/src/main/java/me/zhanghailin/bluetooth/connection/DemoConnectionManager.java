@@ -6,6 +6,7 @@ import android.bluetooth.BluetoothManager;
 import android.content.Context;
 
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import me.zhanghailin.bluetooth.device.BleDevice;
@@ -14,8 +15,10 @@ import me.zhanghailin.bluetooth.request.BleDataRequest;
 import me.zhanghailin.bluetooth.request.ConnectRequest;
 import me.zhanghailin.bluetooth.request.ITaskRequest;
 import me.zhanghailin.bluetooth.request.ReconnectRequest;
+import me.zhanghailin.bluetooth.request.filter.SimpleAdderssFilter;
 import me.zhanghailin.bluetooth.task.ITaskManager;
 import me.zhanghailin.bluetooth.task.TaskManager;
+import me.zhanghailin.bluetooth.task.executor.ConnectTaskExecutor;
 import me.zhanghailin.bluetooth.task.queue.HashTaskQueue;
 import me.zhanghailin.bluetooth.task.timer.EmptyTimer;
 import timber.log.Timber;
@@ -38,7 +41,7 @@ public class DemoConnectionManager implements ConnectionManager {
 
     private ITaskManager connectionManager;
 
-    private Set<String> failedAddress = new HashSet<>();
+    private Set<String> waitingDeviceAddress = new HashSet<>();
 
     public DemoConnectionManager(BluetoothGattCallback callback, ITaskManager dataManager, Context context) {
         this.callback = callback;
@@ -54,17 +57,18 @@ public class DemoConnectionManager implements ConnectionManager {
         connectionManager = new TaskManager.Builder()
                 .setTaskQueue(new HashTaskQueue())
                 .setTimeoutTimer(new EmptyTimer())
+                .setTaskExecutor(new ConnectTaskExecutor(this))
                 .build();
     }
 
     @Override
     public void nextConnectionOperation() {
-        connectionManager.finishTask();
+        connectionManager.finishTaskWithRunNext();
     }
 
     @Override
     public void nextOperation() {
-        dataManager.finishTask();
+        dataManager.finishTaskWithRunNext();
     }
 
     @Override
@@ -82,12 +86,12 @@ public class DemoConnectionManager implements ConnectionManager {
 
     @Override
     public void connectWaitingDevices() {
-        if (failedAddress.size() == 0) {
+        if (waitingDeviceAddress.size() == 0) {
             Timber.d("no waiting devices");
             return;
         }
-        String[] waitingDeviceAddress = failedAddress.toArray(new String[1]);
-        failedAddress.clear();
+        String[] waitingDeviceAddress = this.waitingDeviceAddress.toArray(new String[1]);
+        this.waitingDeviceAddress.clear();
         for (String address : waitingDeviceAddress) {
             Timber.d("connect waiting device [%s]", address);
             addNewDevice(address);
@@ -95,18 +99,33 @@ public class DemoConnectionManager implements ConnectionManager {
     }
 
     @Override
+    public void saveWaitingDevices() {
+
+        List<ITaskRequest> requests = connectionManager.listTask();
+
+        for (ITaskRequest request : requests) {
+            if (request == null || request.tag() == null) {
+                continue;
+            }
+            addWaitingDevice(request.tag());
+        }
+    }
+
+    @Override
     public void addWaitingDevice(String address) {
-        failedAddress.add(address);
+        Timber.d("exec add device to waiting list address[%s]", address);
+
+        waitingDeviceAddress.add(address);
     }
 
     @Override
     public void removeWaitingDevice(String address) {
-        failedAddress.remove(address);
+        waitingDeviceAddress.remove(address);
     }
 
     @Override
     public void clearAll() {
-        failedAddress.clear();
+        waitingDeviceAddress.clear();
 
         connectionManager.cancelAllTask();
 
@@ -118,10 +137,11 @@ public class DemoConnectionManager implements ConnectionManager {
     @Override
     public void close(String address) {
         BleDevice bleDevice = devicePool.buildNewDevice(bluetoothAdapter, address);
-        if (bleDevice.getGatt() != null) {
-            bleDevice.getGatt().close();
-            bleDevice.setGatt(null);
-        }
+
+        connectionManager.cancelTask(new SimpleAdderssFilter(bleDevice));
+        removeWaitingDevice(address);
+
+        bleDevice.closeSafely();
     }
 
     @Override

@@ -22,7 +22,7 @@ public class SimpleFinishPolicy implements TimeoutPolicy {
 
     @Override
     public void onTaskTimeout() {
-        taskManager.finishTask();
+        taskManager.finishTaskWithRunNext();
     }
 
     @Override

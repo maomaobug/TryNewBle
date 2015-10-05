@@ -36,10 +36,8 @@ public class ConnectRequest implements ITaskRequest {
     public boolean execute() {
         boolean result = true;
         try {
-            if (bleDevice.getGatt() != null) {
-                bleDevice.getGatt().close();
-                bleDevice.setGatt(null);
-            }
+            bleDevice.closeSafely();
+
             BluetoothDevice device = bleDevice.getDevice();
             BluetoothGatt gatt = device.connectGatt(context, false, bleCallback);
             bleDevice.setGatt(gatt);

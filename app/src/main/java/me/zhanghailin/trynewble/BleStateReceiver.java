@@ -6,7 +6,8 @@ import android.content.Context;
 import android.content.Intent;
 
 /**
- * TryNewBle
+ * fixme 应该移入 bluetooth 模块， 但是由于 依赖了 BleService 的实现， 不能移入 library
+ * fixme 这里先做 demo， 后续修改
  * package me.zhanghailin.bluetooth
  * author shenwenjun
  * Date 10/3/15.
@@ -23,6 +24,8 @@ public class BleStateReceiver extends BroadcastReceiver {
             int state = intent.getIntExtra(BluetoothAdapter.EXTRA_STATE, -1);
             if (state == BluetoothAdapter.STATE_ON) {
                 performBleOn(context);
+            } else if (state == BluetoothAdapter.STATE_OFF) {
+                performBleOff(context);
             }
         }
     }
@@ -32,6 +35,13 @@ public class BleStateReceiver extends BroadcastReceiver {
      */
     private void performBleOn(Context context) {
         ApplicationBleService.startReconnectWaitingDevices(context);
+    }
+
+    /**
+     * 蓝牙关闭时， 记录所有请求队列中的设备， 以备打开蓝牙时尝试重连
+     */
+    private void performBleOff(Context context) {
+        ApplicationBleService.startSaveDevicesToWaiting(context);
     }
 
 }

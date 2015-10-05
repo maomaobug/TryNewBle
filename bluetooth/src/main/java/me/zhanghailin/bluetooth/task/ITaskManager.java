@@ -1,5 +1,7 @@
 package me.zhanghailin.bluetooth.task;
 
+import java.util.List;
+
 import me.zhanghailin.bluetooth.request.ITaskRequest;
 import me.zhanghailin.bluetooth.request.filter.RequestFilter;
 
@@ -13,16 +15,19 @@ public interface ITaskManager {
 
     void submitTask(ITaskRequest request);
 
+    void finishTask();
+
     /**
      * 需要保证即使重复调用该函数， 也不能影响程序逻辑正常执行
-     * 例如 断开连接时， 请求队列中的数据没有增加， 但是能够触发 finishTask()
+     * 例如 断开连接时， 请求队列中的数据没有增加， 但是能够触发 finishTaskWithRunNext()
      */
-    void finishTask();
+    void finishTaskWithRunNext();
 
     /**
      * 使用 filter 批量取消 task
      * </br>
      * 一般是根据 request 的 tag 来判断是否是要取消任务的
+     *
      * @param filter
      */
     void cancelTask(RequestFilter filter);
@@ -30,5 +35,7 @@ public interface ITaskManager {
     void cancelAllTask();
 
     ITaskRequest currentTask();
+
+    List<ITaskRequest> listTask();
 
 }

@@ -54,6 +54,8 @@ public class MainActivity extends AppCompatActivity {
         RecyclerView recyclerView = (RecyclerView) findViewById(R.id.recyclerView);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
         recyclerView.setAdapter(new Adapter(this));
+
+        currentAddress = DemoConstants.ADDRS[0];
     }
 
     @Override

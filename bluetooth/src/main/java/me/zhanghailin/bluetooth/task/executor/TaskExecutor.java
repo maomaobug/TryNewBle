@@ -12,4 +12,8 @@ public interface TaskExecutor {
 
     boolean executeTask(ITaskRequest request);
 
+    void onExecuteSuccess(ITaskRequest request);
+
+    void onExecuteFailed(ITaskRequest request);
+
 }

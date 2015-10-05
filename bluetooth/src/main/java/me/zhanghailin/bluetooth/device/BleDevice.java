@@ -33,6 +33,8 @@ public abstract class BleDevice {
 
     private Connector connector;
 
+    private boolean serviceDiscovered;
+
     public BleDevice(ConnectionManager connectionManager, BluetoothDevice device) {
         this(connectionManager, device, new DefaultConnector());
     }
@@ -44,6 +46,14 @@ public abstract class BleDevice {
     }
 
     //---- 状态相关 ----
+
+    public boolean isServiceDiscovered() {
+        return serviceDiscovered;
+    }
+
+    public void setServiceDiscovered(boolean serviceDiscovered) {
+        this.serviceDiscovered = serviceDiscovered;
+    }
 
     public String getAddress() {
         return device.getAddress();
@@ -61,10 +71,6 @@ public abstract class BleDevice {
 
     public void setGatt(BluetoothGatt gatt) {
         this.gatt = gatt;
-    }
-
-    public BluetoothGatt getGatt() {
-        return gatt;
     }
 
     public BluetoothDevice getDevice() {
@@ -87,6 +93,17 @@ public abstract class BleDevice {
 
     public List<BluetoothProtocol> getAllProtocols() {
         return protocols;
+    }
+
+    //---- 操作相关 ----
+
+    public void closeSafely() {
+        if (gatt != null) {
+            gatt.close();
+            gatt = null;
+        } else {
+            Timber.w("device has closed address[%s]", getAddress());
+        }
     }
 
     //---- 命令相关 ----

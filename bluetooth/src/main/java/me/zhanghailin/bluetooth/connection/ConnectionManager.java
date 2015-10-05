@@ -13,6 +13,7 @@ public interface ConnectionManager {
     void enQueueRequest(BleDataRequest request);
     void addNewDevice(String address);
     void connectWaitingDevices();
+    void saveWaitingDevices();
     void addWaitingDevice(String address);
     void removeWaitingDevice(String address);
     void close(String address);

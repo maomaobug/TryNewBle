@@ -25,6 +25,9 @@ public abstract class BleDataRequest implements ITaskRequest {
      */
     @Override
     public String tag() {
+        if (gatt == null) {
+            return null;
+        }
         return gatt.getDevice().getAddress();
     }
 
@@ -63,8 +66,4 @@ public abstract class BleDataRequest implements ITaskRequest {
      */
     protected abstract boolean performExecute(BluetoothGatt gatt);
 
-    @Override
-    public String toString() {
-        return getClass().getSimpleName() + " address: " + tag();
-    }
 }

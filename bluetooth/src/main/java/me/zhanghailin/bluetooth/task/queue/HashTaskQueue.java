@@ -43,6 +43,14 @@ public class HashTaskQueue extends SimpleTaskQueue {
     }
 
     @Override
+    public boolean removeTask(ITaskRequest request) {
+
+        tags.remove(request.tag());
+
+        return super.removeTask(request);
+    }
+
+    @Override
     public boolean clearTask() {
         tags.clear();
         return super.clearTask();

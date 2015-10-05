@@ -15,19 +15,29 @@ public class BleTaskExecutor implements TaskExecutor {
 
     @Override
     public boolean executeTask(ITaskRequest request) {
-        Timber.d("executing %s %s", request.getClass().getSimpleName(), request.tag());
+//        Timber.d("executing %s %s", request.getClass().getSimpleName(), request.tag());
         boolean result = false;
         try {
             BluetoothAdapter adapter = BluetoothAdapter.getDefaultAdapter();
             int state = adapter.getState();
             if (state == BluetoothAdapter.STATE_ON) {
-                request.execute();
-                result = true;
+                result = request.execute();
             }
         } catch (Exception e) {
             Timber.e(e, "in executeTask");
+            result = false;
         }
         return result;
+    }
+
+    @Override
+    public void onExecuteSuccess(ITaskRequest request) {
+        Timber.d("executing post request Success %s %s", request.getClass().getSimpleName(), request.tag());
+    }
+
+    @Override
+    public void onExecuteFailed(ITaskRequest request) {
+        Timber.d("executing post request Failed %s %s", request.getClass().getSimpleName(), request.tag());
     }
 
 }

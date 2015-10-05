@@ -94,35 +94,29 @@ public class BleResponseProcessor {
         if (bluetoothAdapter.getState() != BluetoothAdapter.STATE_ON) {
             connectionManager.nextConnectionOperation();
 //            蓝牙不处于打开状态的情况下，直接把设备添加到等待连接集合， 以备后续需要时发起连接
-            device.getGatt().close();
-            device.setGatt(null);
+            device.closeSafely();
             connectionManager.addWaitingDevice(address);
             return;
         }
 
         // 2. 然后判断 Gatt 操作状态是否为成功， 连接不在范围内的设备时会进入这里
         if (status != BluetoothGatt.GATT_SUCCESS) {
-            device.getGatt().close();
-            device.setGatt(null);
-            switch (status) {
-                case 133: // 尝试重连， 能救回来
-                    connectionManager.reconnect(address);
-                    connectionManager.addWaitingDevice(address);
-                    break;
-                case 257: // 这个状态的就没见过能活过来的， 加入等待连接队列吧
-                    connectionManager.addWaitingDevice(address);
-                default: //其他错误情况 忽略， 直接进行下一个任务
-                    connectionManager.nextConnectionOperation();
-                    break;
+            device.closeSafely();
+            if (status != 257) {
+                //133 等状态 = 尝试重连， 能救回来
+                connectionManager.reconnect(address);
             }
+            //else {
+            // 这个状态的就没见过能活过来的， 直接加入等待连接队列吧， 不用尝试重连了
+            // }
+            connectionManager.addWaitingDevice(address);
+            connectionManager.nextConnectionOperation();
             return;
         }
 
         // 3. 当操作状态正常成功时, 判断是连接上了设备， 还是设备被断开
         if (newState == BluetoothProfile.STATE_DISCONNECTED) {
-
-            device.getGatt().close();
-            device.setGatt(null);
+            device.closeSafely();
             if (device.getConnector().isConnected()) {
                 //设备之前连上了， 现在发现断开，则需要尝试重连
                 connectionManager.reconnect(address);
@@ -136,10 +130,14 @@ public class BleResponseProcessor {
             }
         } else if (newState == BluetoothProfile.STATE_CONNECTED) {
             connectionManager.nextConnectionOperation();
-
-            device.getConnector().setState(Connector.STATE_CONNECTED);
             connectionManager.removeWaitingDevice(address);
-            device.discoverServices();
+            if (!device.isServiceDiscovered()) {
+                // 保存起来设备的 service chara 和 descriptor
+                // 因为不知道 重连后 gatt 是不是同一个对象， 上一个 gatt 中的 service 能不能
+                // 不 discover ， 直接使用 gatt 中的 service 是否可以
+                device.getConnector().setState(Connector.STATE_CONNECTED);
+                device.discoverServices();
+            }
         }
     }
 
@@ -148,6 +146,7 @@ public class BleResponseProcessor {
 
         BleDevice device = devicePool.get(address);
         device.registerNotificationProtocols();
+        device.setServiceDiscovered(true);
     }
 
     private void onValueNotify(String address, UUID characteristicUuid, byte[] value) {
