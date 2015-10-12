@@ -1,17 +1,20 @@
 package me.zhanghailin.bluetooth.task;
 
-import android.util.Log;
-
+import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
 
-import me.zhanghailin.bluetooth.request.BleDataRequest;
+import me.zhanghailin.bluetooth.request.ITaskRequest;
 import me.zhanghailin.bluetooth.request.filter.RequestFilter;
-import me.zhanghailin.bluetooth.task.executor.SimpleTaskExecutor;
+import me.zhanghailin.bluetooth.task.executor.BleTaskExecutor;
 import me.zhanghailin.bluetooth.task.executor.TaskExecutor;
-import me.zhanghailin.bluetooth.task.policy.DefaultTimeoutPolicy;
+import me.zhanghailin.bluetooth.task.policy.SimpleFinishPolicy;
 import me.zhanghailin.bluetooth.task.policy.TimeoutPolicy;
 import me.zhanghailin.bluetooth.task.queue.SimpleTaskQueue;
 import me.zhanghailin.bluetooth.task.queue.TaskQueue;
+import me.zhanghailin.bluetooth.task.timer.EmptyTimer;
+import me.zhanghailin.bluetooth.task.timer.ITimeoutTimer;
+import timber.log.Timber;
 
 /**
  * 管理 task 的调度 和 执行
@@ -27,16 +30,18 @@ public class TaskManager implements ITaskManager {
 
     private TaskExecutor taskExecutor;
 
-    private Timeout timeout;
+    private ITimeoutTimer timeoutTimer;
 
-    private BleDataRequest currentTask;
+    private ITaskRequest currentTask;
 
     private TaskManager() {
         /* use Builder pattern*/
     }
 
     @Override
-    public void submitTask(BleDataRequest request) {
+    public void submitTask(ITaskRequest request) {
+        Timber.d("submit exect  %s %s", request.getClass().getSimpleName(), request.tag());
+
         taskQueue.addTask(request);
 
         nextTask();
@@ -44,18 +49,22 @@ public class TaskManager implements ITaskManager {
 
     @Override
     public void finishTask() {
-        timeout.stopTiming();
+        if (currentTask == null) {
+            Timber.d("finish exef 飞来横祸一记");
+        } else {
+            Timber.d("finish exef  %s %s", currentTask.getClass().getSimpleName(), currentTask.tag());
+        }
 
-        currentTask.setRunning(false);
+        currentTask = null;
 
-        nextTask();
+        timeoutTimer.stopTiming();
     }
 
     @Override
-    public void retryCurrentTask() {
-        cancelTask(currentTask);
+    public void finishTaskWithRunNext() {
+        finishTask();
 
-        retryTask(currentTask);
+        nextTask();
     }
 
     @Override
@@ -63,73 +72,75 @@ public class TaskManager implements ITaskManager {
 
         TaskQueue localQueue = taskQueue;
 
-        Iterator<BleDataRequest> iterator = localQueue.iterator();
-        BleDataRequest dataRequest;
+        Iterator<ITaskRequest> iterator = localQueue.iterator();
+        ITaskRequest dataRequest;
         while (iterator.hasNext()) {
             dataRequest = iterator.next();
             if (filter.apply(dataRequest)) {
                 localQueue.removeTask(dataRequest);
             }
         }
+
+        ITaskRequest currentTask = currentTask();
+        if (currentTask != null && filter.apply(currentTask)) {
+            // 蓝牙没有办法停止当前任务, 这里直接 finishTaskWithRunNext
+            finishTask();
+        }
     }
 
     @Override
     public void cancelAllTask() {
-        taskQueue.removeAllTask();
+        taskQueue.clearTask();
+    }
+
+    @Override
+    public ITaskRequest currentTask() {
+        return currentTask;
+    }
+
+    @Override
+    public List<ITaskRequest> listTask() {
+        Iterator<ITaskRequest> iterator = taskQueue.iterator();
+        List<ITaskRequest> list = new ArrayList<>();
+
+        while (iterator.hasNext()) {
+            list.add(iterator.next());
+        }
+
+        return list;
     }
 
     private void nextTask() {
 
         if (taskQueue.isEmpty()) {
-            Log.i(TAG, " taskQueue is empty");
+            Timber.v(" taskQueue is empty");
             return;
         }
 
-        if (currentTask != null && currentTask.isRunning()) {
-            Log.i(TAG, " currentTask is running, wait...");
+        if (currentTask != null) {
+            Timber.v(" currentTask [%s] is running, waiting...", currentTask.tag());
             return;
         }
 
         currentTask = taskQueue.pollTask();
 
-        if (currentTask == null || currentTask.isRunning()) {
-            Log.w(TAG, " currentTask is running, wait...");
+        if (currentTask == null) {
+            Timber.w(" currentTask is null");
             return;
         }
 
         performExecute();
     }
 
-    private void cancelTask(BleDataRequest request) {
-        if (request != null && request.isRunning()) {
-            request.setRunning(false);
-
-        } else {
-            if (request == null) {
-                Log.e(TAG, " retry failed because request is null ");
-            } else {
-                Log.e(TAG, " retry failed because request not running");
-            }
-        }
-    }
-
-    private void retryTask(BleDataRequest request) {
-        if (request != null && !request.isRunning()) {
-            performExecute();
-
-        } else {
-            if (request == null) {
-                Log.e(TAG, " retry failed because request is null ");
-            } else {
-                Log.e(TAG, " retry failed because request running");
-            }
-        }
-    }
-
     private void performExecute() {
-        timeout.startTiming();
-        currentTask.setRunning(true);
-        taskExecutor.executeTask(currentTask);
+        timeoutTimer.startTiming();
+        boolean success = taskExecutor.executeTask(currentTask);
+        if (success) {
+            taskExecutor.onExecuteSuccess(currentTask);
+        } else {
+            taskExecutor.onExecuteFailed(currentTask);
+            finishTaskWithRunNext();
+        }
     }
 
     public static class Builder {
@@ -140,13 +151,14 @@ public class TaskManager implements ITaskManager {
             mTaskManager = new TaskManager();
 
             mTaskManager.taskQueue = new SimpleTaskQueue();
-            mTaskManager.taskExecutor = new SimpleTaskExecutor();
+            mTaskManager.taskExecutor = new BleTaskExecutor();
 
-            mTaskManager.timeout = new Timeout();
+            mTaskManager.timeoutTimer = new EmptyTimer();
 
-            TimeoutPolicy timeoutPolicy = new DefaultTimeoutPolicy(mTaskManager);
+            TimeoutPolicy timeoutPolicy = new SimpleFinishPolicy(mTaskManager);
 
-            mTaskManager.timeout.setTimeoutPolicy(timeoutPolicy);
+            mTaskManager.timeoutTimer.setupTimeoutPolicy(timeoutPolicy);
+            mTaskManager.timeoutTimer.setupTimeout(4 * 1000);
         }
 
         public Builder setTaskQueue(TaskQueue taskQueue) {
@@ -159,8 +171,26 @@ public class TaskManager implements ITaskManager {
             return this;
         }
 
+        public Builder setTimeoutTimer(ITimeoutTimer timeoutTimer) {
+            mTaskManager.timeoutTimer = timeoutTimer;
+            return this;
+        }
+
+        public Builder setTimeoutTimer(ITimeoutTimer timeoutTimer, TimeoutPolicy timeoutPolicy, long timeout) {
+            mTaskManager.timeoutTimer = timeoutTimer;
+            setTimeoutPolicy(timeoutPolicy, timeout);
+            return this;
+        }
+
         public Builder setTimeoutPolicy(TimeoutPolicy timeoutPolicy) {
-            mTaskManager.timeout.setTimeoutPolicy(timeoutPolicy);
+            mTaskManager.timeoutTimer.setupTimeoutPolicy(timeoutPolicy);
+            mTaskManager.timeoutTimer.setupTimeout(4 * 1000);
+            return this;
+        }
+
+        public Builder setTimeoutPolicy(TimeoutPolicy timeoutPolicy, long timeout) {
+            mTaskManager.timeoutTimer.setupTimeoutPolicy(timeoutPolicy);
+            mTaskManager.timeoutTimer.setupTimeout(timeout);
             return this;
         }
 

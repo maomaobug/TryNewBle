@@ -1,6 +1,6 @@
 package me.zhanghailin.bluetooth.request.filter;
 
-import me.zhanghailin.bluetooth.request.BleDataRequest;
+import me.zhanghailin.bluetooth.request.ITaskRequest;
 
 /**
  * TryNewBle
@@ -16,6 +16,6 @@ public interface RequestFilter {
      * @param request 要过滤的 request
      * @return 是否符合过滤条件， 即是否要处理该 request
      */
-    boolean apply(BleDataRequest request);
+    boolean apply(ITaskRequest request);
 
 }

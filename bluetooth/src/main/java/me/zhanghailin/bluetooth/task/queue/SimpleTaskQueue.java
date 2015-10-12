@@ -6,7 +6,7 @@ import java.util.Iterator;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
-import me.zhanghailin.bluetooth.request.BleDataRequest;
+import me.zhanghailin.bluetooth.request.ITaskRequest;
 
 /**
  * TryNewBle
@@ -18,13 +18,14 @@ public class SimpleTaskQueue implements TaskQueue {
 
     private static final String TAG = "SimpleTaskQueue";
 
-    private Queue<BleDataRequest> mQueue;
+    private Queue<ITaskRequest> mQueue;
 
     public SimpleTaskQueue() {
         mQueue = new ConcurrentLinkedQueue<>();
     }
 
-    public boolean addTask(BleDataRequest request) {
+    @Override
+    public boolean addTask(ITaskRequest request) {
         boolean result;
         try {
             result = mQueue.offer(request);
@@ -36,27 +37,27 @@ public class SimpleTaskQueue implements TaskQueue {
     }
 
     @Override
-    public BleDataRequest peekTask() {
+    public ITaskRequest peekTask() {
         return mQueue.peek();
     }
 
     @Override
-    public BleDataRequest pollTask() {
+    public ITaskRequest pollTask() {
         return mQueue.poll();
     }
 
     @Override
-    public boolean containTask(BleDataRequest request) {
+    public boolean containTask(ITaskRequest request) {
         return mQueue.contains(request);
     }
 
     @Override
-    public boolean removeTask(BleDataRequest request) {
+    public boolean removeTask(ITaskRequest request) {
         return mQueue.remove(request);
     }
 
     @Override
-    public boolean removeAllTask() {
+    public boolean clearTask() {
         mQueue.clear();
         return true;
     }
@@ -67,7 +68,7 @@ public class SimpleTaskQueue implements TaskQueue {
     }
 
     @Override
-    public Iterator<BleDataRequest> iterator() {
+    public Iterator<ITaskRequest> iterator() {
         return mQueue.iterator();
     }
 

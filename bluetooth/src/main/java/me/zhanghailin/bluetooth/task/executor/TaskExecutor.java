@@ -1,6 +1,6 @@
 package me.zhanghailin.bluetooth.task.executor;
 
-import me.zhanghailin.bluetooth.request.BleDataRequest;
+import me.zhanghailin.bluetooth.request.ITaskRequest;
 
 /**
  * TryNewBle
@@ -10,6 +10,10 @@ import me.zhanghailin.bluetooth.request.BleDataRequest;
  */
 public interface TaskExecutor {
 
-    boolean executeTask(BleDataRequest request);
+    boolean executeTask(ITaskRequest request);
+
+    void onExecuteSuccess(ITaskRequest request);
+
+    void onExecuteFailed(ITaskRequest request);
 
 }

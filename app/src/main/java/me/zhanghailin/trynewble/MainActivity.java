@@ -6,22 +6,27 @@ import android.content.ServiceConnection;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
-import android.view.Menu;
-import android.view.MenuItem;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
+import android.text.method.ScrollingMovementMethod;
+import android.util.TypedValue;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.TextView;
 
 import me.zhanghailin.bluetooth.BleService;
 import me.zhanghailin.bluetooth.DemoConstants;
-import me.zhanghailin.trynewble.protocol.BatteryProtocol;
-import me.zhanghailin.trynewble.protocol.ClickProtocol;
+import me.zhanghailin.trynewble.protocol.BleNotifyProtocol;
+import me.zhanghailin.trynewble.protocol.BleReadProtocol;
 
 public class MainActivity extends AppCompatActivity {
 
     private TextView textView;
-
+    private StringBuilder stringBuilder;
     private BleService bleService;
+
+    private String currentAddress;
+
     private final ServiceConnection serviceConnection = new ServiceConnection() {
         @Override
         public void onServiceConnected(ComponentName name, IBinder service) {
@@ -42,6 +47,15 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         textView = (TextView) findViewById(R.id.text);
+        textView.setMovementMethod(new ScrollingMovementMethod());
+
+        stringBuilder = new StringBuilder();
+
+        RecyclerView recyclerView = (RecyclerView) findViewById(R.id.recyclerView);
+        recyclerView.setLayoutManager(new LinearLayoutManager(this));
+        recyclerView.setAdapter(new Adapter(this));
+
+        currentAddress = DemoConstants.ADDRS[0];
     }
 
     @Override
@@ -60,67 +74,172 @@ public class MainActivity extends AppCompatActivity {
         textView.setText("disconnected~~~~~");
     }
 
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.menu_main, menu);
-        return true;
+    public void setCurrent(String address) {
+        currentAddress = address;
     }
 
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
-        int id = item.getItemId();
-
-        //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
-            return true;
-        }
-
-        return super.onOptionsItemSelected(item);
-    }
-
-    public void connect(View view) {
-        Log.d("main", "connect clicked");
+    public void reconnect(View v) {
         if (bleService != null) {
-            bleService.connect(DemoConstants.ADDR);
-            textView.setText("device connected");
+            for (String address : DemoConstants.ADDRS) {
+                bleService.autoReconnect(address);
+            }
         }
     }
 
-    public void beep(View view) {
-        Log.d("main", "beep clicked");
+    public void close(View v) {
+        if (bleService != null) {
+            for (String address : DemoConstants.ADDRS) {
+                bleService.enqueueDisconnect(address);
+            }
+        }
+    }
 
-        IHereDevicePool devicePool = (IHereDevicePool) bleService.getDevicePool();
-        IHereDevice device = devicePool.get(DemoConstants.ADDR);
-        device.middleAlert();
+    public void addDevices(View v) {
+        if (bleService != null) {
+            for (String address : DemoConstants.ADDRS) {
+                bleService.addDevice(address);
+            }
+        }
+    }
+
+    public void connectWaiting(View v) {
+        if (bleService != null) {
+            bleService.getConnectionManager().connectWaitingDevices();
+        }
     }
 
     public void bindBleClick(View v) {
         IHereDevicePool devicePool = (IHereDevicePool) bleService.getDevicePool();
-        IHereDevice device = devicePool.get(DemoConstants.ADDR);
-        device.setOnBleClickListener(new ClickProtocol.OnBleClickListener() {
+        IHereDevice device = devicePool.get(currentAddress);
+        device.setOnBleClickListener(new BleNotifyProtocol.OnBleNotifyListener() {
             @Override
-            public void onBleClick() {
-                textView.setText("Ble Device Clicked");
+            public void onBleNotify(Object value) {
+                updateText("Ble Device Clicked");
             }
         });
+    }
+
+    public void beep(View view) {
+        IHereDevicePool devicePool = (IHereDevicePool) bleService.getDevicePool();
+        IHereDevice device = devicePool.get(currentAddress);
+        device.middleAlert();
     }
 
     public void onBatteryClick(View v) {
         IHereDevicePool devicePool = (IHereDevicePool) bleService.getDevicePool();
-        IHereDevice device = devicePool.get(DemoConstants.ADDR);
-        device.battery(new BatteryProtocol.OnReadBatteryCompleteListener() {
+        IHereDevice device = devicePool.get(currentAddress);
+        device.battery(new BleReadProtocol.OnBleReadCompleteListener() {
             @Override
-            public void onReadComplete(int batteryLevel) {
-                textView.setText("电池电量：" + batteryLevel);
+            public void onBleReadComplete(Object value) {
+                updateText("电池电量：" + (int) value);
             }
         });
     }
 
-    public void disconnect(View view) {
-        Log.d("main", "disconnect clicked");
+    public void onSomeTaskClick(View v) {
+        IHereDevicePool devicePool = (IHereDevicePool) bleService.getDevicePool();
+        IHereDevice device = devicePool.get(currentAddress);
+
+        BleReadProtocol.OnBleReadCompleteListener firmware = new BleReadProtocol.OnBleReadCompleteListener() {
+            @Override
+            public void onBleReadComplete(Object value) {
+                updateText("firmware version：" + value);
+            }
+        };
+        BleReadProtocol.OnBleReadCompleteListener battery = new BleReadProtocol.OnBleReadCompleteListener() {
+            @Override
+            public void onBleReadComplete(Object value) {
+                updateText("电池电量：" + (int) value);
+            }
+        };
+
+        for (int i = 0; i < 10; i++) {
+            device.readFirmware(firmware);
+            device.battery(battery);
+            device.middleAlert();
+        }
+
     }
+
+    private int lineNum = 1;
+
+    private void updateText(String text) {
+        stringBuilder.append(lineNum++).append(". ").append(text).append("\n");
+        textView.setText(stringBuilder.toString());
+    }
+
 }
+
+
+class Adapter extends RecyclerView.Adapter<Holder> implements View.OnClickListener {
+
+    private final static String[] source = DemoConstants.ADDRS;
+
+    private MainActivity mainActivity;
+
+    private float height;
+
+    private RecyclerView recyclerView;
+
+    private RecyclerView.LayoutManager layoutManager;
+
+    public Adapter(MainActivity mainActivity) {
+        this.mainActivity = mainActivity;
+        height = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 50, mainActivity.getResources().getDisplayMetrics());
+    }
+
+    @Override
+    public void onAttachedToRecyclerView(RecyclerView recyclerView) {
+        super.onAttachedToRecyclerView(recyclerView);
+        this.recyclerView = recyclerView;
+        this.layoutManager = recyclerView.getLayoutManager();
+    }
+
+    @Override
+    public void onDetachedFromRecyclerView(RecyclerView recyclerView) {
+        super.onDetachedFromRecyclerView(recyclerView);
+        this.recyclerView = null;
+        this.layoutManager = null;
+    }
+
+    @Override
+    public Holder onCreateViewHolder(ViewGroup viewGroup, int i) {
+        TextView textView = new TextView(viewGroup.getContext());
+        textView.setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, (int) height));
+        textView.setClickable(true);
+        textView.setBackgroundResource(R.drawable.abc_btn_borderless_material);
+        return new Holder(textView, this);
+    }
+
+    @Override
+    public void onBindViewHolder(Holder holder, int i) {
+        String data = source[i];
+        holder.textView.setText(data);
+    }
+
+    @Override
+    public int getItemCount() {
+        return source.length;
+    }
+
+    @Override
+    public void onClick(View v) {
+        String address = source[layoutManager.getPosition(v)];
+
+        mainActivity.setCurrent(address);
+    }
+
+}
+
+class Holder extends RecyclerView.ViewHolder {
+
+    TextView textView;
+
+    public Holder(View itemView, View.OnClickListener listener) {
+        super(itemView);
+        textView = (TextView) itemView;
+        textView.setOnClickListener(listener);
+    }
+
+}
+

@@ -8,7 +8,7 @@ import me.zhanghailin.bluetooth.task.ITaskManager;
  * author shenwenjun
  * Date 9/16/15.
  */
-public class DefaultTimeoutPolicy implements TimeoutPolicy {
+public class SimpleFinishPolicy implements TimeoutPolicy {
 
     private final static int RETRY_COUNT = 2;
 
@@ -16,19 +16,14 @@ public class DefaultTimeoutPolicy implements TimeoutPolicy {
 
     private ITaskManager taskManager;
 
-    public DefaultTimeoutPolicy(ITaskManager taskManager) {
+    public SimpleFinishPolicy(ITaskManager taskManager) {
         this.taskManager = taskManager;
     }
 
     @Override
     public void onTaskTimeout() {
-        if (mCount <= RETRY_COUNT) {
-            taskManager.retryCurrentTask();
-            mCount++;
-        } else {
-            taskManager.finishTask();
-            mCount = 0;
-        }
+        // FIXME: 10/5/15  连接任务超时时，close 释放 gatt
+        taskManager.finishTaskWithRunNext();
     }
 
     @Override

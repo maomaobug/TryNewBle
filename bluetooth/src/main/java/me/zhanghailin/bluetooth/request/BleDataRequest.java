@@ -8,38 +8,27 @@ import android.util.Log;
  * author shenwenjun
  * Date 9/14/15.
  */
-public abstract class BleDataRequest {
+public abstract class BleDataRequest implements ITaskRequest {
 
     private static final String TAG = "BleTaskRequest";
 
     private final BluetoothGatt gatt;
 
-    private volatile boolean running;
-
-    private String tag;
-
     public BleDataRequest(BluetoothGatt gatt) {
         this.gatt = gatt;
     }
 
-    public void setRunning(boolean running) {
-        this.running = running;
-    }
-
-    public boolean isRunning() {
-        return running;
-    }
-
     /**
      * 用于 RequestFilter 判断是否需要取消这个 request
+     *
      * @return tag 内容 eg: BleDevice address
      */
-    public String getTag() {
-        return tag;
-    }
-
-    public void setTag(String tag) {
-        this.tag = tag;
+    @Override
+    public String tag() {
+        if (gatt == null) {
+            return null;
+        }
+        return gatt.getDevice().getAddress();
     }
 
     /**
@@ -49,7 +38,7 @@ public abstract class BleDataRequest {
      */
     public boolean execute() {
         if (interceptExecute()) {
-            return true;
+            return false;
         }
         return performExecute(gatt);
     }

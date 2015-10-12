@@ -2,29 +2,24 @@ package me.zhanghailin.trynewble.protocol;
 
 import java.util.UUID;
 
-import me.zhanghailin.bluetooth.StandardBleProfile;
-
 /**
  * TryNewBle
  * package me.zhanghailin.trynewble.protocol
  * author shenwenjun
- * Date 9/22/15.
+ * Date 9/24/15.
  */
-public class BatteryProtocol implements BleReadProtocol {
+public class FirmwareProtocol implements BleReadProtocol {
 
     private OnBleReadCompleteListener onBleReadCompleteListener;
 
-    @Override
     public void setOnBleReadCompleteListener(OnBleReadCompleteListener onBleReadCompleteListener) {
         this.onBleReadCompleteListener = onBleReadCompleteListener;
     }
 
     @Override
     public void onValueRead(byte[] value) {
-        int batteryLevel = value[0];
-
         if (onBleReadCompleteListener != null) {
-            onBleReadCompleteListener.onBleReadComplete(batteryLevel);
+            onBleReadCompleteListener.onBleReadComplete(new String(value));
         }
     }
 
@@ -35,17 +30,17 @@ public class BatteryProtocol implements BleReadProtocol {
 
     @Override
     public byte[] getValue() {
-        return new byte[0];
+        return null;
     }
 
     @Override
     public UUID getServiceUuid() {
-        return UUID.fromString(StandardBleProfile.SERVICE_BATTERY_SERVICE);
+        return IHereProfile.SERVICE_DEVICE_INFORMATION;
     }
 
     @Override
     public UUID getCharacteristicUuid() {
-        return UUID.fromString(StandardBleProfile.CHAR_BATTERY_LEVEL);
+        return IHereProfile.CHARACTERISTIC_FIRMWARE;
     }
 
     @Override
@@ -72,5 +67,4 @@ public class BatteryProtocol implements BleReadProtocol {
     public long getLastUpdateTime() {
         return 0;
     }
-
 }

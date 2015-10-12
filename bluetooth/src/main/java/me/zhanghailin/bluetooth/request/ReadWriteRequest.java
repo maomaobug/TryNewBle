@@ -3,10 +3,11 @@ package me.zhanghailin.bluetooth.request;
 import android.bluetooth.BluetoothGatt;
 import android.bluetooth.BluetoothGattCharacteristic;
 import android.bluetooth.BluetoothGattDescriptor;
-import android.support.annotation.StringDef;
+import android.bluetooth.BluetoothGattService;
 
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
+import java.util.UUID;
+
+import me.zhanghailin.bluetooth.protocol.BluetoothProtocol;
 
 /**
  * TryNewBle
@@ -16,55 +17,96 @@ import java.lang.annotation.RetentionPolicy;
  */
 public class ReadWriteRequest extends BleDataRequest {
 
-    public static final String READ = "READ";
-    public static final String WRITE = "WRITE";
-
-    @Retention(RetentionPolicy.SOURCE)
-    @StringDef({READ, WRITE})
-    public @interface ReadOrWrite {
-    }
-
-    private static final int MODE_READ_CHAR = 0x1231;
-    private static final int MODE_READ_DESC = 0x1232;
-    private static final int MODE_WRITE_CHAR = 0x1233;
-    private static final int MODE_WRITE_DESC = 0x1234;
-
-    private final BluetoothGattCharacteristic characteristic;
-
-    private final BluetoothGattDescriptor descriptor;
+    public static final int READ_CHARACTERISTIC = 0x1234;
+    public static final int READ_DESCRIPTOR = 0x1235;
+    public static final int WRITE_CHARACTERISTIC = 0x1236;
+    public static final int WRITE_DESCRIPTOR = 0x1237;
 
     private int mMode;
 
-    public ReadWriteRequest(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic, @ReadOrWrite String readOrWrite) {
+    private BluetoothProtocol protocol;
+
+    private byte[] characteristicValue;
+
+    private UUID descriptorUUID;
+
+    private byte[] descriptorValue;
+
+    /**
+     * Read Characteristic Value
+     */
+    public ReadWriteRequest(BluetoothGatt gatt, BluetoothProtocol protocol) {
         super(gatt);
-        this.characteristic = characteristic;
-        this.descriptor = null;
-        mMode = READ.equals(readOrWrite) ? MODE_READ_CHAR : MODE_WRITE_CHAR;
+        this.protocol = protocol;
+        mMode = READ_CHARACTERISTIC;
     }
 
-    public ReadWriteRequest(BluetoothGatt gatt, BluetoothGattDescriptor descriptor, @ReadOrWrite String readOrWrite) {
+    /**
+     * Read descriptor Value
+     */
+    public ReadWriteRequest(BluetoothGatt gatt, BluetoothProtocol protocol, UUID descriptorUUID) {
         super(gatt);
-        this.characteristic = null;
-        this.descriptor = descriptor;
-        mMode = READ.equals(readOrWrite) ? MODE_READ_DESC : MODE_WRITE_DESC;
+        this.protocol = protocol;
+        this.descriptorUUID = descriptorUUID;
+        mMode = READ_DESCRIPTOR;
+    }
+
+    /**
+     * Write Characteristic
+     */
+    public ReadWriteRequest(BluetoothGatt gatt, BluetoothProtocol protocol, byte[] characteristicValue) {
+        super(gatt);
+        this.protocol = protocol;
+        this.characteristicValue = characteristicValue;
+        this.mMode = WRITE_CHARACTERISTIC;
+    }
+
+    /**
+     * Write descriptor
+     */
+    public ReadWriteRequest(BluetoothGatt gatt, BluetoothProtocol protocol, UUID descriptorUUID, byte[] descriptorValue) {
+        super(gatt);
+        this.protocol = protocol;
+        this.descriptorUUID = descriptorUUID;
+        this.descriptorValue = descriptorValue;
+        this.mMode = WRITE_DESCRIPTOR;
     }
 
     @Override
     protected boolean performExecute(BluetoothGatt gatt) {
         boolean result;
 
+        BluetoothGattService service = gatt.getService(protocol.getServiceUuid());
+        if (service == null) {
+            return false;
+        }
+        BluetoothGattCharacteristic characteristic = service.getCharacteristic(protocol.getCharacteristicUuid());
+        if (characteristic == null) {
+            return false;
+        }
+
         switch (mMode) {
-            case MODE_READ_CHAR:
+            case READ_CHARACTERISTIC:
                 result = gatt.readCharacteristic(characteristic);
                 break;
-            case MODE_READ_DESC:
+            case READ_DESCRIPTOR:
+                BluetoothGattDescriptor descriptor = characteristic.getDescriptor(descriptorUUID);
+                if (descriptor == null) {
+                    return false;
+                }
                 result = gatt.readDescriptor(descriptor);
                 break;
-            case MODE_WRITE_CHAR:
+            case WRITE_CHARACTERISTIC:
+                characteristic.setValue(characteristicValue);
                 result = gatt.writeCharacteristic(characteristic);
                 break;
-            case MODE_WRITE_DESC:
-                result = gatt.writeDescriptor(descriptor);
+            case WRITE_DESCRIPTOR:
+                BluetoothGattDescriptor descriptorToWrite = characteristic.getDescriptor(descriptorUUID);
+                if (descriptorToWrite == null) {
+                    return false;
+                }
+                descriptorToWrite.setValue(descriptorValue);
+                result = gatt.writeDescriptor(descriptorToWrite);
                 break;
             default:
                 result = false;

@@ -17,10 +17,10 @@ import me.zhanghailin.bluetooth.task.TaskManager;
 import timber.log.Timber;
 
 public abstract class BleService extends Service {
+
     private final IBinder binder = new LocalBinder();
 
     private ConnectionManager connectionManager;
-    private BleCallback bleCallback;
 
     private DevicePool devicePool;
 
@@ -37,35 +37,32 @@ public abstract class BleService extends Service {
 
         BleResponseProcessor processor = new BleResponseProcessor();
         BleDataDelivery delivery = new HandlerDataDelivery(new BleDataHandler(getMainLooper(), processor));
-        bleCallback = new BleCallback(delivery);
+        BleCallback bleCallback = new BleCallback(delivery);
         connectionManager = new DemoConnectionManager(bleCallback, taskManager, this);
-
 
         devicePool = createDevicePool(connectionManager);
         connectionManager.setDevicePool(devicePool);
 
         processor.setConnectionManager(connectionManager);
         processor.setDevicePool(devicePool);
-
-        connectAllRecorded();
-
-    }
-
-    protected void connectAllRecorded() {
-        connect(DemoConstants.ADDR);
-        connect(DemoConstants.ADDR_1);
-        connect(DemoConstants.ADDR_3);
-        connect(DemoConstants.ADDR_4);
     }
 
     abstract protected DevicePool createDevicePool(ConnectionManager connectionManager);
 
-    public void connect(String address) {
-        try {
-            connectionManager.connect(address);
-        } catch (Exception e) {
-            // TODO: Handle if bluetooth is not on
-        }
+    public ConnectionManager getConnectionManager() {
+        return connectionManager;
+    }
+
+    public void addDevice(String address) {
+        connectionManager.addNewDevice(address);
+    }
+
+    public void autoReconnect(String address) {
+        connectionManager.reconnect(address);
+    }
+
+    public void enqueueDisconnect(String address) {
+        connectionManager.close(address);
     }
 
     public DevicePool getDevicePool() {

@@ -1,15 +1,16 @@
 package me.zhanghailin.trynewble;
 
-import android.bluetooth.BluetoothGatt;
-import android.bluetooth.BluetoothGattCharacteristic;
-import android.bluetooth.BluetoothGattService;
+import android.bluetooth.BluetoothDevice;
 
 import me.zhanghailin.bluetooth.connection.ConnectionManager;
 import me.zhanghailin.bluetooth.device.BleDevice;
 import me.zhanghailin.bluetooth.request.BleDataRequest;
 import me.zhanghailin.bluetooth.request.ReadWriteRequest;
 import me.zhanghailin.trynewble.protocol.BatteryProtocol;
+import me.zhanghailin.trynewble.protocol.BleNotifyProtocol;
+import me.zhanghailin.trynewble.protocol.BleReadProtocol;
 import me.zhanghailin.trynewble.protocol.ClickProtocol;
+import me.zhanghailin.trynewble.protocol.FirmwareProtocol;
 import me.zhanghailin.trynewble.protocol.ImmediateAlertProtocol;
 import me.zhanghailin.trynewble.protocol.LinkLossProtocol;
 
@@ -22,9 +23,10 @@ public class IHereDevice extends BleDevice {
     private final ClickProtocol clickProtocol = new ClickProtocol();
     private final BatteryProtocol batteryProtocol = new BatteryProtocol();
     private final LinkLossProtocol linkLossProtocol = new LinkLossProtocol();
+    private final FirmwareProtocol firmwareProtocol = new FirmwareProtocol();
 
-    public IHereDevice(BluetoothGatt gatt, ConnectionManager connectionManager, String address) {
-        super(gatt, connectionManager, address);
+    public IHereDevice(ConnectionManager connectionManager, BluetoothDevice device) {
+        super(connectionManager, device);
     }
 
     {
@@ -32,6 +34,7 @@ public class IHereDevice extends BleDevice {
         protocols.add(clickProtocol);
         protocols.add(batteryProtocol);
         protocols.add(linkLossProtocol);
+        protocols.add(firmwareProtocol);
     }
 
     @Override
@@ -40,28 +43,26 @@ public class IHereDevice extends BleDevice {
     }
 
     public void middleAlert() {
-        BluetoothGattService service = gatt.getService(immediateAlertProtocol.getServiceUuid());
-        BluetoothGattCharacteristic characteristic =
-                service.getCharacteristic(immediateAlertProtocol.getCharacteristicUuid());
-        characteristic.setValue(ImmediateAlertProtocol.MIDDLE_LEVEL_ALERT);
-
-        BleDataRequest request = new ReadWriteRequest(gatt, characteristic, ReadWriteRequest.WRITE);
+        BleDataRequest request = new ReadWriteRequest(gatt, immediateAlertProtocol, ImmediateAlertProtocol.MIDDLE_LEVEL_ALERT);
         connectionManager.enQueueRequest(request);
     }
 
-    public void battery(BatteryProtocol.OnReadBatteryCompleteListener onReadBatteryCompleteListener) {
-        BluetoothGattService service = gatt.getService(batteryProtocol.getServiceUuid());
-        BluetoothGattCharacteristic characteristic =
-                service.getCharacteristic(batteryProtocol.getCharacteristicUuid());
-
-        BleDataRequest request = new ReadWriteRequest(gatt, characteristic, ReadWriteRequest.READ);
+    public void battery(BleReadProtocol.OnBleReadCompleteListener onBleReadCompleteListener) {
+        BleDataRequest request = new ReadWriteRequest(gatt, batteryProtocol);
         connectionManager.enQueueRequest(request);
 
-        batteryProtocol.setOnReadBatteryCompleteListener(onReadBatteryCompleteListener);
+        batteryProtocol.setOnBleReadCompleteListener(onBleReadCompleteListener);
     }
 
-    public void setOnBleClickListener(ClickProtocol.OnBleClickListener onBleClickListener) {
-        clickProtocol.setOnBleClickListener(onBleClickListener);
+    public void setOnBleClickListener(BleNotifyProtocol.OnBleNotifyListener bleNotifyListener) {
+        clickProtocol.setOnBleNotifyListener(bleNotifyListener);
+    }
+
+    public void readFirmware(BleReadProtocol.OnBleReadCompleteListener onBleReadCompleteListener) {
+        BleDataRequest request = new ReadWriteRequest(gatt, firmwareProtocol);
+        connectionManager.enQueueRequest(request);
+
+        firmwareProtocol.setOnBleReadCompleteListener(onBleReadCompleteListener);
     }
 
 }

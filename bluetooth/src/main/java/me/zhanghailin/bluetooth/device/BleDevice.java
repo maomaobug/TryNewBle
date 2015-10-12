@@ -1,5 +1,6 @@
 package me.zhanghailin.bluetooth.device;
 
+import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothGatt;
 import android.bluetooth.BluetoothGattCharacteristic;
 import android.bluetooth.BluetoothGattDescriptor;
@@ -11,8 +12,11 @@ import java.util.UUID;
 
 import me.zhanghailin.bluetooth.StandardBleProfile;
 import me.zhanghailin.bluetooth.connection.ConnectionManager;
+import me.zhanghailin.bluetooth.connector.Connector;
+import me.zhanghailin.bluetooth.connector.DefaultConnector;
 import me.zhanghailin.bluetooth.protocol.BluetoothProtocol;
 import me.zhanghailin.bluetooth.request.BleDataRequest;
+import me.zhanghailin.bluetooth.request.DiscoverServicesRequest;
 import timber.log.Timber;
 
 /**
@@ -23,20 +27,36 @@ public abstract class BleDevice {
 
     protected final List<BluetoothProtocol> protocols = new ArrayList<>();
     protected final ConnectionManager connectionManager;
+    private final BluetoothDevice device;
     protected int connectionState;
     protected BluetoothGatt gatt;
-    protected String address;
 
-    public BleDevice(BluetoothGatt gatt, ConnectionManager connectionManager, String address) {
-        this.gatt = gatt;
+    private Connector connector;
+
+    private boolean serviceDiscovered;
+
+    public BleDevice(ConnectionManager connectionManager, BluetoothDevice device) {
+        this(connectionManager, device, new DefaultConnector());
+    }
+
+    public BleDevice(ConnectionManager connectionManager, BluetoothDevice device, Connector connector) {
         this.connectionManager = connectionManager;
-        this.address = address;
+        this.device = device;
+        this.connector = connector;
     }
 
     //---- 状态相关 ----
 
+    public boolean isServiceDiscovered() {
+        return serviceDiscovered;
+    }
+
+    public void setServiceDiscovered(boolean serviceDiscovered) {
+        this.serviceDiscovered = serviceDiscovered;
+    }
+
     public String getAddress() {
-        return address;
+        return device.getAddress();
     }
 
     public abstract void setRssi(int rssi);
@@ -45,8 +65,19 @@ public abstract class BleDevice {
         connectionState = newState;
     }
 
+    public Connector getConnector() {
+        return connector;
+    }
+
+    public void setGatt(BluetoothGatt gatt) {
+        this.gatt = gatt;
+    }
+
+    public BluetoothDevice getDevice() {
+        return device;
+    }
+
     /**
-     *
      * @throws IllegalArgumentException If no protocol found for the UUID
      */
     public BluetoothProtocol getProtocol(UUID characteristicUuid) {
@@ -62,6 +93,17 @@ public abstract class BleDevice {
 
     public List<BluetoothProtocol> getAllProtocols() {
         return protocols;
+    }
+
+    //---- 操作相关 ----
+
+    public void closeSafely() {
+        if (gatt != null) {
+            gatt.close();
+            gatt = null;
+        } else {
+            Timber.w("device has closed address[%s]", getAddress());
+        }
     }
 
     //---- 命令相关 ----
@@ -101,7 +143,7 @@ public abstract class BleDevice {
                         boolean writeSuccess = gatt.writeDescriptor(descriptor);
 
                         Timber.i("Descriptor write [%s] for characteristic[%s]",
-                                writeSuccess , protocol.getCharacteristicUuid());
+                                writeSuccess, protocol.getCharacteristicUuid());
 
                         return writeSuccess;
                     }
@@ -122,13 +164,9 @@ public abstract class BleDevice {
         }
     }
 
-    public void clearAndReconnect() {
-        connectionManager.enQueueDisconnect(address);
-        connectionManager.enQueueConnect(address);
-    }
-
     public void discoverServices() {
-        gatt.discoverServices();
+        DiscoverServicesRequest request = new DiscoverServicesRequest(gatt);
+        connectionManager.enQueueRequest(request);
     }
 
 }
