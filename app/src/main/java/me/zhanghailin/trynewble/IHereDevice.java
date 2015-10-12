@@ -1,8 +1,6 @@
 package me.zhanghailin.trynewble;
 
 import android.bluetooth.BluetoothDevice;
-import android.bluetooth.BluetoothGattCharacteristic;
-import android.bluetooth.BluetoothGattService;
 
 import me.zhanghailin.bluetooth.connection.ConnectionManager;
 import me.zhanghailin.bluetooth.device.BleDevice;
@@ -45,21 +43,12 @@ public class IHereDevice extends BleDevice {
     }
 
     public void middleAlert() {
-        BluetoothGattService service = gatt.getService(immediateAlertProtocol.getServiceUuid());
-        BluetoothGattCharacteristic characteristic =
-                service.getCharacteristic(immediateAlertProtocol.getCharacteristicUuid());
-        characteristic.setValue(ImmediateAlertProtocol.MIDDLE_LEVEL_ALERT);
-
-        BleDataRequest request = new ReadWriteRequest(gatt, characteristic, ReadWriteRequest.WRITE);
+        BleDataRequest request = new ReadWriteRequest(gatt, immediateAlertProtocol, ImmediateAlertProtocol.MIDDLE_LEVEL_ALERT);
         connectionManager.enQueueRequest(request);
     }
 
     public void battery(BleReadProtocol.OnBleReadCompleteListener onBleReadCompleteListener) {
-        BluetoothGattService service = gatt.getService(batteryProtocol.getServiceUuid());
-        BluetoothGattCharacteristic characteristic =
-                service.getCharacteristic(batteryProtocol.getCharacteristicUuid());
-
-        BleDataRequest request = new ReadWriteRequest(gatt, characteristic, ReadWriteRequest.READ);
+        BleDataRequest request = new ReadWriteRequest(gatt, batteryProtocol);
         connectionManager.enQueueRequest(request);
 
         batteryProtocol.setOnBleReadCompleteListener(onBleReadCompleteListener);
@@ -70,14 +59,10 @@ public class IHereDevice extends BleDevice {
     }
 
     public void readFirmware(BleReadProtocol.OnBleReadCompleteListener onBleReadCompleteListener) {
-        firmwareProtocol.setOnBleReadCompleteListener(onBleReadCompleteListener);
-
-        BluetoothGattService service = gatt.getService(firmwareProtocol.getServiceUuid());
-        BluetoothGattCharacteristic characteristic =
-                service.getCharacteristic(firmwareProtocol.getCharacteristicUuid());
-
-        BleDataRequest request = new ReadWriteRequest(gatt, characteristic, ReadWriteRequest.READ);
+        BleDataRequest request = new ReadWriteRequest(gatt, firmwareProtocol);
         connectionManager.enQueueRequest(request);
+
+        firmwareProtocol.setOnBleReadCompleteListener(onBleReadCompleteListener);
     }
 
 }
